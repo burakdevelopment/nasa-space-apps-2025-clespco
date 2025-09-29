@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D VR - Uzay & Jüpiter (Local)</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>html,body{height:100%;margin:0;background:#000;color:#ddd;font-family:Arial,Helvetica,sans-serif}#info{position:fixed;left:10px;top:10px;z-index:999;padding:10px;background:rgba(0,0,0,0.4);border-radius:6px}</style>
+</head>
+<body>
+  <div id="info">
+    <strong>3D VR Uzay Denemesi</strong><br>
+    - VR gözlüğünüzü takın ve "Enter VR" butonuna basın<br>
+    - Yerel olarak çalıştırmak için: <code>python -m http.server 8000</code> komutunu kullanın ve tarayıcıda <code>http://localhost:8000/3d_vr_test_planet.html</code> açın.<br>
+    - Chrome, edge önerilir
+  </div>
+
+  <a-scene background="color: #000000" embedded vr-mode-ui="enterVRButton: true">
+    
+    <a-entity id="cameraRig">
+      <a-entity camera look-controls wasd-controls position="0 1.6 5"></a-entity>
+    </a-entity>
+
+    
+    <a-sky color="#000"></a-sky>
+
+    
+    <a-entity id="stars" position="0 0 0">
+      <a-entity geometry="primitive: sphere; radius: 80" material="shader:flat; color: #000; src: #starsCanvas" scale="1 1 -1"></a-entity>
+    </a-entity>
+
+    
+    <a-sphere id="sun" position="-12 3 -20" radius="2.2" material="shader:flat; emissive: #ffdd88; emissiveIntensity: 1"></a-sphere>
+    <a-light type="point" intensity="1.6" position="-12 3 -20"></a-light>
+
+    
+    <a-entity id="jupiterParent" position="0 1 -8">
+      <a-sphere id="jupiter" radius="2" segments-width="64" segments-height="64" jupiter-texture rotation="0 0 0"></a-sphere>
+      
+      <a-ring position="0 0 -0.01" rotation="90 0 0" radius-inner="2.3" radius-outer="2.7" material="side:double; opacity:0.45"></a-ring>
+    </a-entity>
+
+    
+    <a-sphere id="mercury" position="-4 0.8 -5" radius="0.25" material="color: #b9b399"></a-sphere>
+    <a-sphere id="venus" position="3 0.9 -6.5" radius="0.35" material="color: #e3c08a"></a-sphere>
+    <a-sphere id="earth" position="5 1 -9" radius="0.45" material="color: #2b6fb6"></a-sphere>
+
+    
+    <a-entity animation__jup="property: rotation; to: 0 360 0; loop: true; dur: 0; dir: normal; easing: linear; dur: 60000" target="#jupiter"></a-entity>
+
+    <a-entity animation__mercury="property: position; to: -4 0.8 -5; loop: true; dur: 0"></a-entity>
+
+    
+
+  </a-scene>
+
+  <canvas id="jupiterCanvas" width="2048" height="1024" style="display:none"></canvas>
+  <canvas id="starsCanvas" width="2048" height="1024" style="display:none"></canvas>
+
+  <script>
+    
+    (function(){
+      const c = document.getElementById('starsCanvas');
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0,0,c.width,c.height);
+      function rand(a,b){return a + Math.random()*(b-a)}
+      for(let i=0;i<2500;i++){
+        const x = Math.random()*c.width;
+        const y = Math.random()*c.height;
+        const r = Math.random()*1.6;
+        const g = ctx.createRadialGradient(x,y,0,x,y,r*4);
+        const bright = Math.floor(rand(150,255));
+        g.addColorStop(0,'rgba('+bright+','+bright+','+bright+',1)');
+        g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      }
+      
+    })();
+
+    
+    (function(){
+      const canvas = document.getElementById('jupiterCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+
+      
+      function noiseLine(y, amp){
+        let line = new Array(w);
+        let prev = Math.random()*2-1;
+        for(let x=0;x<w;x++){
+          prev += (Math.random()*2-1)*0.02;
+          line[x] = prev*amp;
+        }
+        return line;
+      }
+
+      
+      const bands = [];
+      for(let i=0;i<12;i++) bands.push({color: `hsl(${20 + i*8}, ${40 + (i%3)*20}%, ${30 + (i%4)*8}%)`, width: Math.floor(h/12)+Math.floor((Math.random()*30)-15)});
+
+      
+      let yPos = 0;
+      for(let i=0;i<bands.length;i++){
+        const band = bands[i];
+        ctx.fillStyle = band.color;
+        ctx.fillRect(0,yPos,w,band.width);
+        
+        const noise = noiseLine(yPos, 6);
+        ctx.globalAlpha = 0.08;
+        for(let x=0;x<w;x++){
+          const yy = yPos + Math.floor((Math.sin(x/30)+1)*2) + noise[x];
+          ctx.fillRect(x, yy, 1, 1);
+        }
+        ctx.globalAlpha = 1.0;
+        yPos += band.width;
+      }
+
+      
+      const gx = Math.floor(w*0.7);
+      const gy = Math.floor(h*0.45);
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(gx, gy, 220, 140, Math.PI/8, 0, Math.PI*2);
+      const grad = ctx.createRadialGradient(gx-40, gy-20, 10, gx, gy, 250);
+      grad.addColorStop(0,'rgba(180,60,50,0.95)');
+      grad.addColorStop(0.6,'rgba(160,40,30,0.6)');
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+
+      
+      const img = ctx.getImageData(0,0,w,h);
+      const tmp = ctx.createImageData(w,h);
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          const i = (y*w + x)*4;
+          
+          let r=0,g=0,b=0,a=0,count=0;
+          for(let k=-3;k<=3;k++){
+            const nx = Math.min(w-1, Math.max(0, x+k));
+            const ni = (y*w + nx)*4;
+            r += img.data[ni]; g += img.data[ni+1]; b += img.data[ni+2]; a += img.data[ni+3]; count++;
+          }
+          tmp.data[i] = r/count; tmp.data[i+1] = g/count; tmp.data[i+2] = b/count; tmp.data[i+3] = a/count;
+        }
+      }
+      ctx.putImageData(tmp,0,0);
+
+      
+      ctx.globalAlpha = 0.05;
+      for(let i=0;i<80000;i++){
+        const x = Math.random()*w; const y = Math.random()*h; ctx.fillRect(x,y,1,1);
+      }
+      ctx.globalAlpha = 1.0;
+
+      
+      const imgEl = document.createElement('img');
+      imgEl.id = 'jupiterTextureImg';
+      imgEl.src = canvas.toDataURL();
+      imgEl.style.display = 'none';
+      document.body.appendChild(imgEl);
+
+      
+      AFRAME.registerComponent('jupiter-texture', {
+        init: function(){
+          const el = this.el;
+          
+          el.addEventListener('model-loaded', ()=>{});
+          el.setAttribute('material', 'src', '#jupiterTextureImg');
+          el.setAttribute('material', 'shader', 'standard');
+          el.setAttribute('material', 'metalness', 0);
+          el.setAttribute('material', 'roughness', 1);
+        }
+      });
+
+      
+      const scene = document.querySelector('a-scene');
+      scene.addEventListener('loaded', ()=>{
+        const mercury = document.getElementById('mercury');
+        const venus = document.getElementById('venus');
+        const earth = document.getElementById('earth');
+        const jParent = document.getElementById('jupiterParent');
+        let t = 0;
+        function tick(){
+          t += 0.002;
+          mercury.object3D.position.set(Math.cos(t*2.4)*2.6, 0.8, Math.sin(t*2.4)*2.6 -6);
+          venus.object3D.position.set(Math.cos(t*1.6)*3.8, 0.9, Math.sin(t*1.6)*3.8 -6.5);
+          earth.object3D.position.set(Math.cos(t*1.2)*5.5, 1, Math.sin(t*1.2)*5.5 -8);
+          
+          jParent.object3D.rotation.y += 0.0009;
+          requestAnimationFrame(tick);
+        }
+        tick();
+      });
+
+    })();
+  </script>
+</body>
+</html>
