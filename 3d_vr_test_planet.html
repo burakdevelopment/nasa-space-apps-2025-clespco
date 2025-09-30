@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gerçekçi VR Uzay Simülasyonu - Jüpiter & Sistem</title>
-  <!-- Three.js + modules (CDN) -->
+  
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
     import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
     import { VRButton } from 'https://unpkg.com/three@0.152.2/examples/jsm/webxr/VRButton.js';
 
-    // Basic scene, renderer, camera
+    
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
@@ -27,17 +27,17 @@
     controls.target.set(0,0,0);
     controls.update();
 
-    // Lights (Sun-like)
+    
     const sunLight = new THREE.PointLight(0xffffff, 2.6, 0, 2);
     sunLight.position.set(-1000, 0, 0);
     scene.add(sunLight);
 
-    // Helper: load texture
+    
     const loader = new THREE.TextureLoader();
 
-    // Create a starfield (big sphere with star texture)
+    
     const starsTex = loader.load('https://threejs.org/examples/textures/cube/Bridge2/posx.jpg', ()=>{});
-    // fallback: simple points
+    
     (function createPoints(){
       const geom = new THREE.BufferGeometry();
       const count = 12000;
@@ -56,14 +56,14 @@
       scene.add(points);
     })();
 
-    // Simulation parameters (realistic-ish) - we'll use scaled units
-    // Distances in million km scaled by SCALE_DIST, masses in 10^24 kg scaled by SCALE_MASS
-    const SCALE_DIST = 0.0005; // scale down distances to fit scene
-    const SCALE_MASS = 1e-6;    // scale masses for numerical stability
-    const TIME_STEP = 60*60*24; // one simulation step = one day (seconds)
-    let timeMultiplier = 1;     // speed control (1 = real-time days per frame)
+    
+   
+    const SCALE_DIST = 0.0005; 
+    const SCALE_MASS = 1e-6;    
+    const TIME_STEP = 60*60*24; 
+    let timeMultiplier = 1;     
 
-    // Planet data (simplified): name, radius_km, distance_from_sun_km (mean), mass_10^24kg, textureURL
+    
     const bodiesData = [
       {name:'Sun', radius:696340, dist:0, mass:1989000, texture:'https://threejs.org/examples/textures/planets/sun.jpg'},
       {name:'Mercury', radius:2439.7, dist:57910000, mass:0.330, texture:'https://threejs.org/examples/textures/planets/mercury.jpg'},
@@ -76,30 +76,30 @@
       {name:'Neptune', radius:24622, dist:4495000000, mass:102, texture:'https://threejs.org/examples/textures/planets/neptune.jpg'}
     ];
 
-    // Convert to simulation bodies with THREE meshes and physics properties
+    
     const bodies = [];
-    const G = 6.67430e-11; // gravitational constant (m^3 kg^-1 s^-2)
+    const G = 6.67430e-11; 
 
-    // We'll represent positions in meters internally: dist_km*1000
+    
     for(const d of bodiesData){
       const body = {};
       body.name = d.name;
-      body.mass = d.mass * 1e24 * SCALE_MASS; // scale mass
-      body.radius = Math.max(1, d.radius * SCALE_DIST); // scaled visual radius
-      // Start positions along x-axis (simple coplanar)
-      const dist_m = d.dist * 1000; // km->m
+      body.mass = d.mass * 1e24 * SCALE_MASS;
+      body.radius = Math.max(1, d.radius * SCALE_DIST); 
+      
+      const dist_m = d.dist * 1000; 
       body.position = new THREE.Vector3((dist_m * SCALE_DIST) || 0, 0, 0);
-      // initial velocity (circular approx): v = sqrt(G*M_sun/r)
+      
       if(d.name==='Sun') body.velocity = new THREE.Vector3(0,0,0);
       else{
         const r = dist_m;
-        const M = bodiesData[0].mass * 1e24; // sun mass (unscaled) for velocity calc
-        const v = Math.sqrt(G * M / r); // m/s
-        // We'll convert velocity to scaled units consistent with position scaling
-        // position scales by SCALE_DIST, so velocity scales by SCALE_DIST as well
+        const M = bodiesData[0].mass * 1e24; 
+        const v = Math.sqrt(G * M / r); 
+        
+        
         body.velocity = new THREE.Vector3(0, 0, v * SCALE_DIST);
       }
-      // Create mesh
+      
       const geom = new THREE.SphereGeometry(body.radius, 64, 64);
       const mat = new THREE.MeshStandardMaterial({map: loader.load(d.texture)});
       const mesh = new THREE.Mesh(geom, mat);
@@ -111,7 +111,7 @@
       bodies.push(body);
     }
 
-    // Add Saturn rings as a visual for Saturn
+    
     (function addRings(){
       const sat = bodies.find(b=>b.name==='Saturn');
       if(!sat) return;
@@ -124,36 +124,34 @@
       sat.mesh.add(ring);
     })();
 
-    // Time integrator: simple symplectic Euler / velocity Verlet for N-body
+    
     function computeAccelerations(){
-      // reset accelerations
+      
       const accs = bodies.map(_=>new THREE.Vector3(0,0,0));
       for(let i=0;i<bodies.length;i++){
         for(let j=i+1;j<bodies.length;j++){
           const bi = bodies[i];
           const bj = bodies[j];
-          // compute vector from i to j in real meters (we used scaled positions)
+          
           const rij = new THREE.Vector3().subVectors(bj.position, bi.position);
           const dist = rij.length();
           if(dist===0) continue;
-          // We used scaled masses and scaled positions; use scaled G accordingly.
-          // To avoid complexity, compute using real units approximation:
-          // Convert back to meters by dividing SCALE_DIST, but masses were scaled too.
+          
 
-          // Better approach: compute gravitational acceleration using real values then scale to our units.
-          // Convert positions back to meters: pos_m = pos_scaled / SCALE_DIST
+          
+          
           const pos_i_m = bi.position.clone().divideScalar(SCALE_DIST);
           const pos_j_m = bj.position.clone().divideScalar(SCALE_DIST);
           const r_m = new THREE.Vector3().subVectors(pos_j_m, pos_i_m);
           const dist_m = r_m.length();
           if(dist_m===0) continue;
-          // actual mass in kg (we stored scaled mass). Recover approximate real mass by dividing SCALE_MASS
+          
           const mi = bi.mass / SCALE_MASS;
           const mj = bj.mass / SCALE_MASS;
           const force_mag = G * mi * mj / (dist_m*dist_m);
-          const acc_i = r_m.clone().multiplyScalar(force_mag / mi / dist_m); // m/s^2
+          const acc_i = r_m.clone().multiplyScalar(force_mag / mi / dist_m); 
           const acc_j = acc_i.clone().multiplyScalar(-1);
-          // Convert acc back to our scaled position units (acc_scaled = acc_m * SCALE_DIST)
+          
           accs[i].add(acc_i.multiplyScalar(SCALE_DIST));
           accs[j].add(acc_j.multiplyScalar(SCALE_DIST));
         }
@@ -161,65 +159,65 @@
       return accs;
     }
 
-    // Simulation loop variables
+    
     let lastTime = performance.now();
     let accumulator = 0;
 
     function simulate(deltaMs){
-      // convert ms to seconds
+      
       const deltaSec = deltaMs / 1000;
-      // We'll advance by fixed physics dt for stability
-      const physicsDt = TIME_STEP * timeMultiplier; // seconds per physics step
+      
+      const physicsDt = TIME_STEP * timeMultiplier; 
 
-      // simple single-step per frame to keep things responsive (can be refined)
+      
       const accs = computeAccelerations();
       for(let i=0;i<bodies.length;i++){
         const b = bodies[i];
-        // v += a*dt
+        
         const a = accs[i];
         b.velocity.add(a.clone().multiplyScalar(physicsDt));
-        // p += v*dt
+        
         b.position.add(b.velocity.clone().multiplyScalar(physicsDt));
-        // update mesh
+        
         b.mesh.position.copy(b.position);
       }
     }
 
-    // Add labels (HTML overlay) for selected body
+   
     const infoDiv = document.createElement('div');
     infoDiv.style.position='fixed'; infoDiv.style.right='10px'; infoDiv.style.top='10px';
     infoDiv.style.padding='10px'; infoDiv.style.background='rgba(0,0,0,0.5)'; infoDiv.style.color='#fff';
     infoDiv.style.fontFamily='Arial'; infoDiv.innerHTML = '<b>Gerçekçi Simülasyon</b><br>Zaman Hızı: <span id="timeSpeed">1</span> gün/frame';
     document.body.appendChild(infoDiv);
 
-    // UI: keyboard controls
+    
     window.addEventListener('keydown', (e)=>{
       if(e.key === '+' || e.key === '='){ timeMultiplier *= 2; document.getElementById('timeSpeed')?.innerText = timeMultiplier; }
       if(e.key === '-' || e.key === '_'){ timeMultiplier = Math.max(0.125, timeMultiplier/2); document.getElementById('timeSpeed')?.innerText = timeMultiplier; }
     });
 
-    // Animation
+    
     function animate(){
       renderer.setAnimationLoop(()=>{
         const now = performance.now();
         const dt = now - lastTime; lastTime = now;
         simulate(dt);
-        // rotate planets slowly around their axis for realism
+        
         bodies.forEach(b=>{ if(b.mesh) b.mesh.rotation.y += 0.001; });
         renderer.render(scene, camera);
       });
     }
     animate();
 
-    // Resize
+    
     window.addEventListener('resize', ()=>{
       camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Small helper: click to focus camera on a planet
+    
     window.addEventListener('click', (ev)=>{
-      // cast ray
+      
       const mouse = new THREE.Vector2((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, camera);
@@ -234,7 +232,7 @@
       }
     });
 
-    // Expose some settings to global for debugging in console
+    
     window.SIM = { bodies, setTimeMultiplier: (v)=>{timeMultiplier=v; document.getElementById('timeSpeed').innerText = v;} };
 
   </script>
@@ -246,9 +244,9 @@
   </style>
 
   <div id="infoBox">
-    <strong>VR Gerçekçi Simülasyon</strong><br>
+    <strong>VR Simülasyon</strong><br>
     - Çalıştırmak için terminalde: <code>python -m http.server 8000</code><br>
-    - Tarayıcı: Chrome/Edge (WebXR destekli).<br>
+    - Tarayıcı: Chrome/Edge WebXR destekli.<br>
     - '+' veya '-' tuşlarıyla simülasyon hızını değiştirin.<br>
     - Tıklayıp gezegene odaklanabilirsiniz. VR modda el kontrolcülerle bakış kullanabilirsiniz.
   </div>
