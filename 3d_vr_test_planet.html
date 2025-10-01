@@ -1,254 +1,350 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gerçekçi VR Uzay Simülasyonu - Jüpiter & Sistem</title>
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerçekçi VR Uzay — Jüpiter & Sistem (High-Res Textures)</title>
+
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
     import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
     import { VRButton } from 'https://unpkg.com/three@0.152.2/examples/jsm/webxr/VRButton.js';
 
-    
+    // ---------- SCENE / RENDERER / CAMERA ----------
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true; // enable WebXR
+    renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(VRButton.createButton(renderer));
 
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1e7);
-    camera.position.set(0, 200, 600);
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1e8);
+    camera.position.set(0, 200, 900);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0,0,0);
+    controls.target.set(0, 0, 0);
     controls.update();
 
-    
-    const sunLight = new THREE.PointLight(0xffffff, 2.6, 0, 2);
-    sunLight.position.set(-1000, 0, 0);
+    // ---------- LIGHT ----------
+    const sunLight = new THREE.PointLight(0xffffff, 3.0, 0, 2);
+    sunLight.position.set(-100000, 0, 0); // very far to mimic sun direction
     scene.add(sunLight);
 
-    
+    const ambient = new THREE.AmbientLight(0x222222);
+    scene.add(ambient);
+
     const loader = new THREE.TextureLoader();
 
-    
-    const starsTex = loader.load('https://threejs.org/examples/textures/cube/Bridge2/posx.jpg', ()=>{});
-    
-    (function createPoints(){
+    // ---------- STARFIELD (point cloud for depth) ----------
+    (function createStarfield(){
       const geom = new THREE.BufferGeometry();
-      const count = 12000;
-      const positions = new Float32Array(count * 3);
-      for(let i=0;i<count;i++){
-        const r = Math.random()*8000 + 2000;
-        const theta = Math.random()*Math.PI*2;
-        const phi = Math.acos((Math.random()*2)-1);
-        positions[i*3] = r*Math.sin(phi)*Math.cos(theta);
-        positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
-        positions[i*3+2] = r*Math.cos(phi);
+      const count = 20000;
+      const pos = new Float32Array(count * 3);
+      for (let i=0;i<count;i++){
+        const r = 40000 + Math.random() * 200000;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2*Math.random()-1);
+        pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+        pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        pos[i*3+2] = r * Math.cos(phi);
       }
-      geom.setAttribute('position', new THREE.BufferAttribute(positions,3));
-      const mat = new THREE.PointsMaterial({ size: 2, sizeAttenuation: true, opacity:0.9, transparent:true });
+      geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({ size: 6, sizeAttenuation: true, transparent:true, opacity:0.9 });
       const points = new THREE.Points(geom, mat);
       scene.add(points);
     })();
 
-    
-   
-    const SCALE_DIST = 0.0005; 
-    const SCALE_MASS = 1e-6;    
-    const TIME_STEP = 60*60*24; 
-    let timeMultiplier = 1;     
+    // ---------- SCALE & SIMULATION SETTINGS ----------
+    // We use a visual scaled system: distances scaled down while keeping orbital dynamics approx.
+    let SCALE_DIST = 0.00012;    // smaller -> planets appear farther apart (you asked daha uzak)
+    const SCALE_MASS = 1e-6;
+    const G = 6.67430e-11;
+    const TIME_STEP = 60*60*24; // 1 physics step == 1 day (seconds)
+    let timeMultiplier = 1;     // press +/- to scale
 
-    
-    const bodiesData = [
-      {name:'Sun', radius:696340, dist:0, mass:1989000, texture:'https://threejs.org/examples/textures/planets/sun.jpg'},
-      {name:'Mercury', radius:2439.7, dist:57910000, mass:0.330, texture:'https://threejs.org/examples/textures/planets/mercury.jpg'},
-      {name:'Venus', radius:6051.8, dist:108200000, mass:4.87, texture:'https://threejs.org/examples/textures/planets/venus.jpg'},
-      {name:'Earth', radius:6371, dist:149600000, mass:5.97, texture:'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'},
-      {name:'Mars', radius:3389.5, dist:227900000, mass:0.642, texture:'https://threejs.org/examples/textures/planets/mars_1k_color.jpg'},
-      {name:'Jupiter', radius:69911, dist:778500000, mass:1898, texture:'https://threejs.org/examples/textures/planets/jupiter.jpg'},
-      {name:'Saturn', radius:58232, dist:1433000000, mass:568, texture:'https://threejs.org/examples/textures/planets/saturn.jpg'},
-      {name:'Uranus', radius:25362, dist:2871000000, mass:86.8, texture:'https://threejs.org/examples/textures/planets/uranus.jpg'},
-      {name:'Neptune', radius:24622, dist:4495000000, mass:102, texture:'https://threejs.org/examples/textures/planets/neptune.jpg'}
+    // ---------- HIGH-RES TEXTURES (public / NASA-based packs & community mirrors) ----------
+    // Sources: SolarSystemScope / PlanetPixelEmporium / NASA JPL photojournal (these are public/free for educational use)
+    // Note: if some URLs 403, let me know and I will embed as base64.
+    const TEXTURES = {
+      sun: 'https://threejs.org/examples/textures/planets/sun.jpg',
+      mercury: 'https://www.planetpixelemporium.com/textures/mercury_2k.jpg',   // fallback local-style pages
+      venus: 'https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg', // SolarSystemScope direct page (may redirect)
+      earth_day: 'https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg',
+      earth_night: 'https://www.solarsystemscope.com/textures/download/8k_earth_nightmap.jpg',
+      earth_clouds: 'https://www.solarsystemscope.com/textures/download/8k_earth_clouds.jpg',
+      mars: 'https://www.solarsystemscope.com/textures/download/8k_mars.jpg',
+      jupiter: 'https://planetpixelemporium.com/jupiter_4k.jpg', // example higher-res
+      jupiter_clouds: 'https://www.jpl.nasa.gov/images/pia02873-16.jpg', // JPL imagery examples (may vary)
+      saturn: 'https://www.solarsystemscope.com/textures/download/4k_saturn.jpg',
+      saturn_rings: 'https://planetpixelemporium.com/saturn_rings_8k.png',
+      uranus: 'https://www.solarsystemscope.com/textures/download/2k_uranus.jpg',
+      neptune: 'https://www.solarsystemscope.com/textures/download/2k_neptune.jpg'
+    };
+
+    // ---------- PLANETARY DATA ----------
+    // name, radius_km, mean_dist_km, mass (10^24 kg), axial tilt degrees, rotation period (hours)
+    const data = [
+      {name:'Sun',    r:696340,   dist:0,         mass:1989000, tilt:7.25,   rotHours:609.12, texture:TEXTURES.sun},
+      {name:'Mercury',r:2439.7,   dist:57910000,  mass:0.330,    tilt:0.034,  rotHours:1407.6, texture:TEXTURES.mercury},
+      {name:'Venus',  r:6051.8,   dist:108200000, mass:4.87,     tilt:177.36, rotHours:-5832.5, texture:TEXTURES.venus},
+      {name:'Earth',  r:6371,     dist:149600000, mass:5.97,     tilt:23.44,  rotHours:23.93, texture:TEXTURES.earth_day, clouds:TEXTURES.earth_clouds, night:TEXTURES.earth_night},
+      {name:'Mars',   r:3389.5,   dist:227900000, mass:0.642,    tilt:25.19,  rotHours:24.62, texture:TEXTURES.mars},
+      {name:'Jupiter',r:69911,    dist:778500000, mass:1898,     tilt:3.13,   rotHours:9.93, texture:TEXTURES.jupiter, clouds:TEXTURES.jupiter_clouds},
+      {name:'Saturn', r:58232,    dist:1433000000, mass:568,     tilt:26.73,  rotHours:10.7, texture:TEXTURES.saturn, rings:TEXTURES.saturn_rings},
+      {name:'Uranus', r:25362,    dist:2871000000, mass:86.8,    tilt:97.77,  rotHours:-17.24, texture:TEXTURES.uranus},
+      {name:'Neptune',r:24622,    dist:4495000000, mass:102,     tilt:28.32,  rotHours:16.11, texture:TEXTURES.neptune}
     ];
 
-    
+    // ---------- Build bodies with meshes and physics props ----------
     const bodies = [];
-    const G = 6.67430e-11; 
-
-    
-    for(const d of bodiesData){
+    for (const d of data){
       const body = {};
       body.name = d.name;
       body.mass = d.mass * 1e24 * SCALE_MASS;
-      body.radius = Math.max(1, d.radius * SCALE_DIST); 
-      
-      const dist_m = d.dist * 1000; 
-      body.position = new THREE.Vector3((dist_m * SCALE_DIST) || 0, 0, 0);
-      
-      if(d.name==='Sun') body.velocity = new THREE.Vector3(0,0,0);
-      else{
+      body.radius = Math.max(1, d.r * SCALE_DIST); // visual radius
+      const dist_m = d.dist * 1000; // km->m
+      // Start on x-axis, raised slightly on y for visual separation
+      body.position = new THREE.Vector3((dist_m * SCALE_DIST) || 0, (Math.random()-0.5)*body.radius*0.2, 0);
+      // Initial velocity: circular approx around sun (use real sun mass)
+      if (d.name === 'Sun') body.velocity = new THREE.Vector3(0,0,0);
+      else {
         const r = dist_m;
-        const M = bodiesData[0].mass * 1e24; 
-        const v = Math.sqrt(G * M / r); 
-        
-        
-        body.velocity = new THREE.Vector3(0, 0, v * SCALE_DIST);
+        const M_sun = data[0].mass * 1e24;
+        const v = Math.sqrt(G * M_sun / r); // m/s
+        body.velocity = new THREE.Vector3(0, v * SCALE_DIST, 0); // perpendicular
       }
-      
-      const geom = new THREE.SphereGeometry(body.radius, 64, 64);
-      const mat = new THREE.MeshStandardMaterial({map: loader.load(d.texture)});
+      body.acceleration = new THREE.Vector3(0,0,0);
+
+      // Mesh: main sphere
+      const segments = 64;
+      const geom = new THREE.SphereGeometry(body.radius, segments, segments);
+      const mat = new THREE.MeshStandardMaterial({
+        map: loader.load(d.texture),
+        metalness: 0,
+        roughness: 1
+      });
       const mesh = new THREE.Mesh(geom, mat);
       mesh.name = d.name;
+      // apply axial tilt
+      const tiltRad = (d.tilt || 0) * Math.PI / 180;
+      mesh.rotation.x = tiltRad;
       mesh.position.copy(body.position);
       scene.add(mesh);
       body.mesh = mesh;
 
+      // special layers
+      if (d.clouds){
+        const cloudGeom = new THREE.SphereGeometry(body.radius * 1.01, segments, segments);
+        const cloudMat = new THREE.MeshPhongMaterial({
+          map: loader.load(d.clouds),
+          transparent: true,
+          opacity: 0.9,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+        const cloudMesh = new THREE.Mesh(cloudGeom, cloudMat);
+        cloudMesh.name = d.name + '_clouds';
+        mesh.add(cloudMesh);
+        body.cloudMesh = cloudMesh;
+      }
+      if (d.night){
+        // Add emissive night map as second material layer using onBeforeCompile shader blending is heavy;
+        // simpler approach: add a second slightly larger sphere with night map multiplied by dark factor.
+        const nightGeom = new THREE.SphereGeometry(body.radius * 1.001, segments, segments);
+        const nightMat = new THREE.MeshBasicMaterial({map: loader.load(d.night), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9});
+        const nightMesh = new THREE.Mesh(nightGeom, nightMat);
+        nightMesh.name = d.name + '_night';
+        mesh.add(nightMesh);
+        body.nightMesh = nightMesh;
+      }
+
+      // Saturn rings special
+      if (d.rings){
+        const inner = body.radius * 1.25;
+        const outer = body.radius * 3.5;
+        const ringGeom = new THREE.RingGeometry(inner, outer, 512);
+        const ringMat = new THREE.MeshBasicMaterial({
+          map: loader.load(d.rings),
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.95
+        });
+        const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+        ringMesh.rotation.x = Math.PI / 2.0;
+        ringMesh.position.set(0,0,0);
+        // tilt Saturn rings along saturn axial tilt:
+        ringMesh.rotation.z = -tiltRad;
+        mesh.add(ringMesh);
+        body.ringMesh = ringMesh;
+      }
+
+      // store rotation speed derived from rotation period (hours); positive: prograde
+      body.rotationSpeed = (360 / ((d.rotHours||24)*3600)) * (Math.PI/180); // rad per second (real)
+      // convert to scene-scale angular speed: multiply a small factor so visible rotation in viewers
+      body.rotationSpeed *= 60000; // amplify to look good visually (tweakable)
+
       bodies.push(body);
     }
 
-    
-    (function addRings(){
-      const sat = bodies.find(b=>b.name==='Saturn');
-      if(!sat) return;
-      const inner = sat.radius*1.2;
-      const outer = sat.radius*2.8;
-      const ringGeo = new THREE.RingGeometry(inner, outer, 64);
-      const ringMat = new THREE.MeshBasicMaterial({color:0xaaaa88, side:THREE.DoubleSide, transparent:true, opacity:0.7});
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.rotation.x = Math.PI/2;
-      sat.mesh.add(ring);
-    })();
+    // Slight manual spacing tweak: move outer planets a bit further to avoid crowding
+    // (user wanted 'bir tık uzak olsunlar' — so multiply distances for outer planets)
+    bodies.forEach(b=>{
+      if (b.name==='Jupiter' || b.name==='Saturn' || b.name==='Uranus' || b.name==='Neptune'){
+        b.position.multiplyScalar(1.8); // push them outward some
+        b.mesh.position.copy(b.position);
+      }
+    });
 
-    
-    function computeAccelerations(){
-      
-      const accs = bodies.map(_=>new THREE.Vector3(0,0,0));
-      for(let i=0;i<bodies.length;i++){
-        for(let j=i+1;j<bodies.length;j++){
-          const bi = bodies[i];
-          const bj = bodies[j];
-          
-          const rij = new THREE.Vector3().subVectors(bj.position, bi.position);
-          const dist = rij.length();
-          if(dist===0) continue;
-          
-
-          
-          
-          const pos_i_m = bi.position.clone().divideScalar(SCALE_DIST);
-          const pos_j_m = bj.position.clone().divideScalar(SCALE_DIST);
-          const r_m = new THREE.Vector3().subVectors(pos_j_m, pos_i_m);
+    // ---------- Physics: Velocity-Verlet Integrator (scaled units) ----------
+    // Helper: compute accelerations (returns array of Vector3 accelerations in scaled units)
+    function computeAccelerations(arrayBodies){
+      const accs = arrayBodies.map(_=>new THREE.Vector3(0,0,0));
+      for (let i=0;i<arrayBodies.length;i++){
+        for (let j=i+1;j<arrayBodies.length;j++){
+          const bi = arrayBodies[i];
+          const bj = arrayBodies[j];
+          // compute vector r_ij in real meters: convert scaled positions back -> pos_m = pos_scaled / SCALE_DIST
+          const pi_m = bi.position.clone().divideScalar(SCALE_DIST);
+          const pj_m = bj.position.clone().divideScalar(SCALE_DIST);
+          const r_m = pj_m.clone().sub(pi_m);
           const dist_m = r_m.length();
-          if(dist_m===0) continue;
-          
+          if (dist_m === 0) continue;
+          // recover real masses in kg from our stored scaled mass
           const mi = bi.mass / SCALE_MASS;
           const mj = bj.mass / SCALE_MASS;
-          const force_mag = G * mi * mj / (dist_m*dist_m);
-          const acc_i = r_m.clone().multiplyScalar(force_mag / mi / dist_m); 
-          const acc_j = acc_i.clone().multiplyScalar(-1);
-          
-          accs[i].add(acc_i.multiplyScalar(SCALE_DIST));
-          accs[j].add(acc_j.multiplyScalar(SCALE_DIST));
+          // gravitational acceleration magnitude on i: G * mj / r^2
+          const a_i_mag = G * mj / (dist_m * dist_m);
+          const a_j_mag = G * mi / (dist_m * dist_m);
+          // direction unit
+          const dir = r_m.clone().normalize();
+          // acceleration vectors in m/s^2
+          const ai_m = dir.clone().multiplyScalar(a_i_mag);
+          const aj_m = ai_m.clone().multiplyScalar(-1 * (mi/mj)); // or simply -ai * (mi/mj)? safer compute separately
+          // convert accelerations back to scaled position units (acc_scaled = acc_m * SCALE_DIST)
+          const ai_scaled = ai_m.multiplyScalar(SCALE_DIST);
+          const aj_scaled = aj_m.multiplyScalar(SCALE_DIST);
+          accs[i].add(ai_scaled);
+          accs[j].add(aj_scaled);
         }
       }
       return accs;
     }
 
-    
-    let lastTime = performance.now();
-    let accumulator = 0;
+    // Initialize accelerations
+    let accs = computeAccelerations(bodies);
 
-    function simulate(deltaMs){
-      
-      const deltaSec = deltaMs / 1000;
-      
-      const physicsDt = TIME_STEP * timeMultiplier; 
-
-      
-      const accs = computeAccelerations();
-      for(let i=0;i<bodies.length;i++){
-        const b = bodies[i];
-        
-        const a = accs[i];
-        b.velocity.add(a.clone().multiplyScalar(physicsDt));
-        
-        b.position.add(b.velocity.clone().multiplyScalar(physicsDt));
-        
-        b.mesh.position.copy(b.position);
+    // Velocity-Verlet per step: dt = physicsDt (seconds)
+    function physicsStep(physicsDt){
+      // half-step velocity
+      for (let i=0;i<bodies.length;i++){
+        // v(t + dt/2) = v(t) + a(t) * dt/2
+        const half = accs[i].clone().multiplyScalar(physicsDt * 0.5);
+        bodies[i].velocity.add(half);
+      }
+      // full-step position
+      for (let i=0;i<bodies.length;i++){
+        // p(t + dt) = p(t) + v(t + dt/2) * dt
+        bodies[i].position.add(bodies[i].velocity.clone().multiplyScalar(physicsDt));
+        bodies[i].mesh.position.copy(bodies[i].position);
+      }
+      // recompute accelerations at new positions
+      accs = computeAccelerations(bodies);
+      // finish velocity
+      for (let i=0;i<bodies.length;i++){
+        const half = accs[i].clone().multiplyScalar(physicsDt * 0.5);
+        bodies[i].velocity.add(half);
       }
     }
 
-   
-    const infoDiv = document.createElement('div');
-    infoDiv.style.position='fixed'; infoDiv.style.right='10px'; infoDiv.style.top='10px';
-    infoDiv.style.padding='10px'; infoDiv.style.background='rgba(0,0,0,0.5)'; infoDiv.style.color='#fff';
-    infoDiv.style.fontFamily='Arial'; infoDiv.innerHTML = '<b>Gerçekçi Simülasyon</b><br>Zaman Hızı: <span id="timeSpeed">1</span> gün/frame';
-    document.body.appendChild(infoDiv);
+    // ---------- UI / Info ----------
+    const info = document.createElement('div');
+    info.style.cssText = 'position:fixed;left:10px;top:10px;padding:10px;background:rgba(0,0,0,0.5);color:#fff;font-family:Arial;z-index:10;border-radius:8px';
+    info.innerHTML = '<b>Gerçekçi Simülasyon</b><br>Gün/frame: <span id="timeSpeed">1</span> ( + / - ile değiştir )<br>Gezegenlere tıklayın -> odaklanır.';
+    document.body.appendChild(info);
 
-    
     window.addEventListener('keydown', (e)=>{
-      if(e.key === '+' || e.key === '='){ timeMultiplier *= 2; document.getElementById('timeSpeed')?.innerText = timeMultiplier; }
-      if(e.key === '-' || e.key === '_'){ timeMultiplier = Math.max(0.125, timeMultiplier/2); document.getElementById('timeSpeed')?.innerText = timeMultiplier; }
+      if (e.key === '+' || e.key === '='){ timeMultiplier *= 2; document.getElementById('timeSpeed').innerText = timeMultiplier; }
+      if (e.key === '-' || e.key === '_'){ timeMultiplier = Math.max(0.125, timeMultiplier/2); document.getElementById('timeSpeed').innerText = timeMultiplier; }
     });
 
-    
+    // ---------- Render loop ----------
+    let last = performance.now();
     function animate(){
       renderer.setAnimationLoop(()=>{
         const now = performance.now();
-        const dt = now - lastTime; lastTime = now;
-        simulate(dt);
-        
-        bodies.forEach(b=>{ if(b.mesh) b.mesh.rotation.y += 0.001; });
+        const dtMs = now - last; last = now;
+        // physics: advance by TIME_STEP * timeMultiplier (seconds)
+        const physicsDt = TIME_STEP * timeMultiplier;
+        // perform one velocity-verlet step per frame (can be subdivided if needed)
+        physicsStep(physicsDt);
+
+        // rotate planets ON THEIR AXIS (visual) and cloud layers independently
+        bodies.forEach(b=>{
+          if (!b.mesh) return;
+          // mesh rotation about y axis (local)
+          b.mesh.rotation.y += b.rotationSpeed * (dtMs/1000);
+          if (b.cloudMesh) b.cloudMesh.rotation.y += (b.rotationSpeed * 1.6) * (dtMs/1000); // clouds slightly faster
+          if (b.ringMesh) b.ringMesh.rotation.z += 0.001 * (dtMs/16.666); // slow ring precession for visual
+        });
+
+        // render
         renderer.render(scene, camera);
       });
     }
     animate();
 
-    
+    // ---------- Raycast click to focus ----------
+    window.addEventListener('click', (ev)=>{
+      const mouse = new THREE.Vector2((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(mouse, camera);
+      const intersects = ray.intersectObjects(scene.children, true);
+      for (const it of intersects){
+        if (it.object && it.object.name){
+          // find parent sphere if clicked child
+          let o = it.object;
+          while (o && !bodies.find(b=>b.mesh === o)) o = o.parent;
+          if (o){
+            controls.target.copy(o.getWorldPosition(new THREE.Vector3()));
+            controls.update();
+            break;
+          } else {
+            // direct child e.g saturn ring -> parent is saturn sphere
+            controls.target.copy(it.object.getWorldPosition(new THREE.Vector3()));
+            controls.update();
+            break;
+          }
+        }
+      }
+    });
+
+    // ---------- Resize ----------
     window.addEventListener('resize', ()=>{
       camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    
-    window.addEventListener('click', (ev)=>{
-      
-      const mouse = new THREE.Vector2((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-      for(const it of intersects){
-        const obj = it.object;
-        if(obj.name){
-          controls.target.copy(obj.getWorldPosition(new THREE.Vector3()));
-          controls.update();
-          break;
-        }
-      }
-    });
-
-    
-    window.SIM = { bodies, setTimeMultiplier: (v)=>{timeMultiplier=v; document.getElementById('timeSpeed').innerText = v;} };
+    // ---------- Debug helper available in console ----------
+    window.SIM = { bodies, setSpeed: (v)=>{ timeMultiplier = v; document.getElementById('timeSpeed').innerText = v; } };
 
   </script>
 
   <style>
     html,body{height:100%;margin:0;background:#000;color:#ddd;font-family:Arial}
-    #infoBox{position:fixed;left:10px;top:10px;padding:12px;background:rgba(0,0,0,0.45);border-radius:8px;z-index:10}
-    button{margin:6px}
+    code{background:#111;padding:2px 6px;border-radius:4px}
+    #infoBox{position:fixed;left:10px;bottom:10px;padding:12px;background:rgba(0,0,0,0.45);border-radius:8px;z-index:10}
   </style>
 
   <div id="infoBox">
-    <strong>VR Simülasyon</strong><br>
-    - Çalıştırmak için terminalde: <code>python -m http.server 8000</code><br>
-    - Tarayıcı: Chrome/Edge WebXR destekli.<br>
-    - '+' veya '-' tuşlarıyla simülasyon hızını değiştirin.<br>
-    - Tıklayıp gezegene odaklanabilirsiniz. VR modda el kontrolcülerle bakış kullanabilirsiniz.
+    <strong>Gerçekçi VR Simülasyon</strong><br>
+    - Çalıştır: <code>python -m http.server 8000</code><br>
+    - Aç: <code>http://localhost:8000/3D_VR_Space_Jupiter_realistic.html</code><br>
+    - '+' / '-' ile zaman hızını değiştir<br>
+    - VR mod: Enter VR tuşu veya gözlük üzerinden giriş
   </div>
-</body>
+</head>
+<body></body>
 </html>
