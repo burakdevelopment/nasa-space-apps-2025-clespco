@@ -97,32 +97,50 @@ display(df_final.head())
 **3. Feature Selection & Merging**
 - We selected key physical features common across all missions (e.g., orbital period, planet radius, stellar temperature) and standardized their column names. The datasets were then merged and cleaned.
 ```python
-df_final = pd.concat([df_koi_final, df_toi_final, df_k2_final], ignore_index=True)
-df_final.dropna(inplace=True)
-df_final = df_final[df_final['planet_name'].notna()]
-df_final.to_csv('final_planet_dataset_with_names.csv', index=False)
-```
+X = df_final.drop(['is_planet', 'planet_name'], axis=1)
+y = df_final['is_planet']
+names = df_final['planet_name']
 
-**4. Model Training and Evaluation**
-- The final dataset was split into training and testing sets. We trained and evaluated three powerful classification models to find the best performer.
-```python
+X_train, X_test, y_train, y_test, names_train, names_test = train_test_split(
+    X, y, names, test_size=0.2, random_state=42, stratify=y
+)
+
 models = {
     "LightGBM": lgb.LGBMClassifier(random_state=42),
     "RandomForest": RandomForestClassifier(random_state=42),
     "XGBoost": xgb.XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss')
 }
 
+best_model_name = ""
+best_model_instance = None
+best_score = 0.0
+
 
 for name, model in models.items():
+    print(f"--- {name} Modeli Eğitiliyor ---")
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print(f"{name} Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Doğruluk (Accuracy): {accuracy:.4f}")
+    print(classification_report(y_test, y_pred))
+
+    if accuracy > best_score:
+        best_score = accuracy
+        best_model_name = name
+        best_model_instance = model
+
+print(f"\n{'='*30}")
+print(f"En İyi Model: {best_model_name} (Doğruluk: {best_score:.4f})")
+print(f"{'='*30}")
 ```
 
-**5. Model Saving**
+**4. Model Saving**
 - The best-performing model was serialized and saved using joblib for deployment.
 ```python
-joblib.dump(best_model_instance, 'planet_classifier.joblib')
+model_filename = 'best_planet_classifier.joblib'
+joblib.dump(best_model_instance, model_filename)
+
+print(f"En iyi model olan '{best_model_name}', '{model_filename}' adıyla kaydedildi.")
 ```
 
 **🌐 Deployment & Web Demo**
