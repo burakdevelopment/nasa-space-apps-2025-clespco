@@ -1,345 +1,258 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <title>NASA VR Solar System - Interactive</title>
-
+  <title>NASA VR Solar System - AI Exoplanet Explorer</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
 </head>
-
 <body>
-
   <a-scene background="color: black">
 
- 
-
     <a-assets>
-
-        <img id="skyTexture" src="textures/sky.jpg">
-
-        <img id="mercuryTexture" src="textures/mercury.jpg">
-
-        <img id="venusTexture" src="textures/venus.jpg">
-
-        <img id="earthTexture" src="textures/earth.jpg">
-
-        <img id="marsTexture" src="textures/mars.jpg">
-
-        <img id="jupiterTexture" src="textures/jupiter.jpg">
-
-        <img id="saturnTexture" src="textures/saturn.jpg">
-
-        <img id="uranusTexture" src="textures/uranus.jpg">
-
-        <img id="neptuneTexture" src="textures/neptune.jpg">
-
-        <img id="saturnRingTexture" src="textures/saturnrings.png">
-
-        <img id="asteroidTexture" src="textures/asteroid.jpg">
-
-        <img id="labelBgTexture" src="textures/label-background.png">
-
-        <img id="infoPanelBgTexture" src="textures/infopanel-background.png">
-
-        <audio id="soundtrackAudio" src="soundtrack.mp3" preload="auto"></audio>
-
+      <img id="skyTexture" src="/static/textures/sky.jpg">
+      <img id="earthTexture" src="/static/textures/earth.jpg">
+      <img id="asteroidTexture" src="/static/textures/asteroid.jpg">
+      <img id="labelBgTexture" src="/static/textures/labeeeel.png">
+      <audio id="soundtrackAudio" src="/static/soundtrack.mp3" preload="auto"></audio>
+      <img id="tex1" src="/static/textures/1.jpeg">
+      <img id="tex2" src="/static/textures/2.jpeg">
+      <img id="tex3" src="/static/textures/3.jpeg">
+      <img id="tex4" src="/static/textures/4.jpeg">
+      <img id="tex5" src="/static/textures/5.jpeg">
+      <img id="tex6" src="/static/textures/6.jpeg">
+      <img id="tex7" src="/static/textures/7.jpeg">
+      <img id="tex8" src="/static/textures/8.jpeg">
+      <img id="tex9" src="/static/textures/9.jpeg">
+      <img id="tex10" src="/static/textures/10.jpeg">
     </a-assets>
 
- 
-
     <a-sky src="#skyTexture"></a-sky>
-
- 
-
     <a-entity light="type: ambient; color: #666"></a-entity>
-
-    <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-1 1 0.5"></a-entity>
-
- 
-
- 
-
+    <a-entity light="type: directional; color: #FFF; intensity: 0.4" position="-1 1 0.5"></a-entity>
+    <a-entity light="type: point; intensity: 2; distance: 100; decay: 2; color: #fff" position="0 0 0"></a-entity>
     <a-entity id="planets"></a-entity>
+    <a-sphere position="-15 8 -20" radius="0.5" material="shader: flat; src: #asteroidTexture" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"></a-sphere>
 
- 
-
-    <a-sphere position="-15 8 -20" radius="0.5"
-
-      material="shader: flat; src: #asteroidTexture"
-
-      animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
-
-    </a-sphere>
-
- 
-
-    <a-entity id="rig" position="0 1.6 0">
-
+    <a-entity id="rig" position="0 6 15" rotation="-10 -20 0">
       <a-camera id="camera" wasd-controls-enabled="true" look-controls="true"></a-camera>
-
- 
-
-      <a-entity id="info-panel" position="1.5 0 -2.5" rotation="0 -30 0" visible="false">
-
-        <a-plane width="2" height="1.5" material="src: #infoPanelBgTexture; transparent: true; opacity: 0.9" side="double"></a-plane>
-
-        <a-text id="info-title" value="Gezegen Adı" color="#FFF" align="center" width="3" position="0 0.55 0.01" font="mozillavr" shader="msdf"></a-text>
-
-        <a-text id="info-text" value="Gezegen hakkında bilgiler burada yer alacak." color="#FFF" align="left" width="1.8" position="-0.9 0.3 0.01" wrap-count="35"></a-text>
-
+      
+      <a-entity id="info-panel" class="draggable-panel" position="2.2 0.3 -2.5" rotation="0 -30 0" visible="false">
+        <a-plane width="2" height="1.0" material="src: /static/textures/labeeeel.png; transparent: true; opacity: 0.9" side="double"></a-plane>
+        <a-text id="info-title" value="Gezegen Adı" color="#FFF" align="center" width="1.9" position="0 0.35 0.01" font="mozillavr" shader="msdf"></a-text>
+        <a-text id="info-text" value="Açıklama" color="#FFF" align="left" width="1.8" position="-0.9 -0.05 0.01" wrap-count="35"></a-text>
       </a-entity>
 
- 
+      <a-entity id="light-curve-panel" class="draggable-panel" position="-2.2 0.3 -2.5" rotation="0 30 0" visible="false">
+          <a-plane width="2.2" height="1.0" color="#050505" material="opacity: 0.75"></a-plane>
+          <a-text value="LIGHT CURVE ANALYSIS" color="#00ffff" position="0 0.4 0.01" align="center" width="3.5" font="mozillavr" shader="msdf"></a-text>
+          <a-plane width="2.0" height="0.01" position="0 0.2 0.01" color="#00ffff" material="opacity: 0.2"></a-plane>
+          <a-plane width="2.0" height="0.01" position="0 0.05 0.01" color="#00ffff" material="opacity: 0.2"></a-plane>
+          <a-plane width="2.0" height="0.01" position="0 -0.1 0.01" color="#00ffff" material="opacity: 0.2"></a-plane>
+          <a-plane width="0.01" height="0.7" position="0 0.05 0.01" color="#00ffff" material="opacity: 0.2"></a-plane>
+          <a-entity id="light-curve-path"></a-entity>
+          <a-entity id="light-curve-tracer" geometry="primitive: sphere; radius: 0.03" material="color: #00ffff; shader: flat" glow="color: #00ffff; intensity: 2.0"></a-entity>
+      </a-entity>
 
-      <a-entity laser-controls="hand: right" raycaster="objects: .planet;"></a-entity>
+      <a-entity id="astro-panel" class="draggable-panel" position="-2.2 -0.9 -2.5" rotation="0 30 0" visible="false">
+          <a-plane width="2.2" height="1.0" color="#050505" material="opacity: 0.75"></a-plane>
+          <a-text value="ASTROPHYSICAL DATA" color="#ffa500" position="0 0.35 0.01" align="center" width="3.5" font="mozillavr" shader="msdf"></a-text>
+          <a-text id="astro-text" value="Veriler yükleniyor..." color="#FFF" align="left" width="1.9" position="-1.0 -0.05 0.01" wrap-count="40"></a-text>
+      </a-entity>
 
-      <a-entity laser-controls="hand: left" raycaster="objects: .planet;"></a-entity>
+      <a-entity id="ai-panel" class="draggable-panel" position="2.2 -0.9 -2.5" rotation="0 -30 0" visible="false">
+          <a-plane width="2.0" height="0.5" color="#050505" material="opacity: 0.75"></a-plane>
+          <a-text value="AI CONFIDENCE" color="#00ff7f" position="0 0.15 0.01" align="center" width="3.5" font="mozillavr" shader="msdf"></a-text>
+          <a-plane id="ai-progress-bg" width="1.8" height="0.1" position="0 -0.1 0.01" color="#FFF" material="opacity: 0.2"></a-plane>
+          <a-plane id="ai-progress-bar" width="0" height="0.1" position="-0.9 -0.1 0.02" color="#00ff7f" material="shader: flat"></a-plane>
+          <a-text id="ai-progress-text" value="0.00%" color="#FFF" position="0 -0.1 0.03" align="center" width="4"></a-text>
+      </a-entity>
 
+      <a-entity laser-controls="hand: right" raycaster="objects: .planet, .draggable-panel" scale="0.5 0.5 0.5"></a-entity>
+      <a-entity laser-controls="hand: left" raycaster="objects: .planet, .draggable-panel" scale="0.5 0.5 0.5"></a-entity>
     </a-entity>
-
- 
 
     <a-entity sound="src: #soundtrackAudio; autoplay: true; loop: true; volume: 0.5"></a-entity>
 
- 
+    <script>
+        
+        const planetsContainer = document.querySelector("#planets");
+        const sceneEl = document.querySelector('a-scene');
+        const infoPanel = document.getElementById('info-panel');
+        const infoTitle = document.getElementById('info-title');
+        const infoText = document.getElementById('info-text');
+        const lightCurvePanel = document.getElementById('light-curve-panel');
+        const lightCurvePath = document.getElementById('light-curve-path');
+        const lightCurveTracer = document.getElementById('light-curve-tracer');
+        const astroPanel = document.getElementById('astro-panel');
+        const astroText = document.getElementById('astro-text');
+        const aiPanel = document.getElementById('ai-panel');
+        const aiProgressBar = document.getElementById('ai-progress-bar');
+        const aiProgressText = document.getElementById('ai-progress-text');
+        let activePlanet = null;
+        let planetsDataStore = [];
+        let lightCurveInterval = null;
+        let draggedPanel = null;
+        let controller = null;
 
+        
+        window.addEventListener('load', () => {
+            fetchPlanetsAndCreateScene();
+            setupDragControls();
+        });
+
+        
+        function setupDragControls() {
+            const sceneEl = document.querySelector('a-scene');
+            sceneEl.addEventListener('tick', () => {
+                if (!draggedPanel || !controller) return;
+                const intersection = controller.components.raycaster.getIntersection(draggedPanel);
+                if (!intersection) return;
+                const localPosition = draggedPanel.parentEl.object3D.worldToLocal(intersection.point.clone());
+                draggedPanel.object3D.position.copy(localPosition);
+            });
+            document.querySelectorAll('[laser-controls]').forEach(ctrl => {
+                ctrl.addEventListener('triggerdown', (evt) => {
+                    controller = ctrl;
+                    const intersectedEl = controller.components.raycaster.intersectedEls[0];
+                    if (intersectedEl && intersectedEl.classList.contains('draggable-panel')) {
+                        draggedPanel = intersectedEl;
+                    }
+                });
+                ctrl.addEventListener('triggerup', (evt) => {
+                    draggedPanel = null;
+                    controller = null;
+                });
+            });
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function animateAIProgress(confidenceString) {
+            const confidenceValue = parseFloat(confidenceString.replace('%', ''));
+            const totalWidth = 1.8;
+            const targetWidth = (confidenceValue / 100) * totalWidth;
+            aiProgressBar.setAttribute('width', 0);
+            aiProgressBar.setAttribute('position', {x: -totalWidth / 2, y: -0.1, z: 0.02});
+            aiProgressBar.setAttribute('animation', { property: 'width', to: targetWidth, dur: 1500, easing: 'easeOutCubic' });
+            let start = 0;
+            const duration = 1500;
+            const stepTime = 20;
+            const increment = confidenceValue / (duration / stepTime);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start > confidenceValue) {
+                    start = confidenceValue;
+                    clearInterval(timer);
+                }
+                aiProgressText.setAttribute('value', `${start.toFixed(2)}%`);
+            }, stepTime);
+        }
+
+        function animateLightCurve(planetInfo) {
+            if (lightCurveInterval) clearInterval(lightCurveInterval);
+            lightCurvePath.innerHTML = '';
+            const numPoints = 100; const width = 2.0; const baseHeight = 0.2;
+            const transitDepth = Math.min(planetInfo.depth / 15000, 0.25) || 0.15;
+            const transitDurationRatio = Math.min(planetInfo.duration / 12, 0.3) || 0.2;
+            const startDip = (1 - transitDurationRatio) / 2; const endDip = 1 - startDip;
+            for (let i = 0; i < numPoints; i++) {
+                const x = -width / 2 + (i / (numPoints - 1)) * width; let y = baseHeight;
+                if(i / numPoints > startDip && i / numPoints < endDip) { y -= transitDepth; }
+                const dot = document.createElement('a-sphere'); dot.setAttribute('radius', '0.008');
+                dot.setAttribute('position', `${x} ${y} 0.02`); dot.setAttribute('color', '#00ffff');
+                dot.setAttribute('material', 'opacity: 0.3'); lightCurvePath.appendChild(dot);
+            }
+            let currentPoint = 0;
+            lightCurveInterval = setInterval(() => {
+                const progress = currentPoint / numPoints; const x = -width / 2 + progress * width;
+                let y = baseHeight; let tracerColor = '#00ffff';
+                if(progress > startDip && progress < endDip) { y -= transitDepth; tracerColor = '#ff00ff'; }
+                lightCurveTracer.setAttribute('position', `${x} ${y} 0.03`);
+                lightCurveTracer.setAttribute('material', `color: ${tracerColor}`);
+                currentPoint++; if (currentPoint > numPoints) { currentPoint = 0; }
+            }, 50);
+        }
+
+       
+        function fetchPlanetsAndCreateScene() {
+            fetch('/get-random-planets')
+                .then(response => response.json())
+                .then(planets => {
+                    planetsDataStore = planets;
+                    createExoplanetScene(planets);
+                })
+                .catch(error => console.error('Gezegen verileri alınamadı:', error));
+        }
+
+        function createExoplanetScene(planets) {
+            const exoplanetTextures = ['#tex1', '#tex2', '#tex3', '#tex4', '#tex5', '#tex6', '#tex7', '#tex8', '#tex9', '#tex10'];
+            shuffleArray(exoplanetTextures);
+            planets.forEach((planet, index) => {
+                const orbitRadius = 8 + index * 4;
+                const planetRadius = planet.planet_radius ? Math.min(planet.planet_radius * 0.4, 3.5) : 0.5;
+                const calculatedDuration = planet.period ? planet.period * 8000 : 80000;
+                const orbitDuration = Math.max(calculatedDuration, 60000);
+                const uniqueTextureId = exoplanetTextures[index];
+                const orbit = document.createElement("a-entity");
+                orbit.setAttribute("animation", `property: rotation; to: 0 360 0; loop: true; dur: ${orbitDuration}; easing: linear`);
+                const el = document.createElement("a-sphere");
+                el.setAttribute("position", `${orbitRadius} 0 0`);
+                el.setAttribute("radius", planetRadius);
+                el.setAttribute("material", `shader: standard; src: ${uniqueTextureId}`);
+                el.classList.add("planet");
+                el.dataset.planetIndex = index;
+                el.setAttribute("animation__spin", "property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear");
+                el.addEventListener('click', function() { showExoplanetInfo(this.dataset.planetIndex); });
+                orbit.appendChild(el);
+                const orbitRing = document.createElement("a-ring");
+                orbitRing.setAttribute("position", "0 0 0");
+                orbitRing.setAttribute("rotation", "-90 0 0");
+                orbitRing.setAttribute("radius-inner", orbitRadius - 0.01);
+                orbitRing.setAttribute("radius-outer", orbitRadius + 0.01);
+                orbitRing.setAttribute("material", "color: #555; opacity: 0.3; shader: flat;");
+                planetsContainer.appendChild(orbit);
+                planetsContainer.appendChild(orbitRing);
+            });
+        }
+        
+        function showExoplanetInfo(planetIndex) {
+            const planetInfo = planetsDataStore[planetIndex];
+            if (!planetInfo) return;
+            if (activePlanet === planetInfo.planet_name) {
+                infoPanel.setAttribute('visible', 'false');
+                lightCurvePanel.setAttribute('visible', 'false');
+                astroPanel.setAttribute('visible', 'false');
+                aiPanel.setAttribute('visible', 'false');
+                if (lightCurveInterval) clearInterval(lightCurveInterval);
+                activePlanet = null;
+            } else {
+                infoPanel.setAttribute('visible', 'true');
+                lightCurvePanel.setAttribute('visible', 'true');
+                astroPanel.setAttribute('visible', 'true');
+                aiPanel.setAttribute('visible', 'true');
+                activePlanet = planetInfo.planet_name;
+
+                infoTitle.setAttribute('value', planetInfo.planet_name.toUpperCase());
+                infoText.setAttribute('value', `"${planetInfo.description}"`);
+                
+                const details = planetInfo.astro_details;
+                astroText.setAttribute('value', `Discovery Year: ${details.discovery_year}\nEst. Mass: ${details.estimated_mass}\nEst. Temp: ${details.surface_temp}\nComposition: ${details.composition}`);
+
+                animateLightCurve(planetInfo);
+
+                const predictionText = planetInfo.ai_confidence >= 15 ? 'PLANET CANDIDATE' : 'LOW PROBABILITY';
+                const finalInfo = `"${planetInfo.description}"\n\n` + `AI STATUS: ${predictionText}`;
+                infoText.setAttribute('value', finalInfo);
+                
+                animateAIProgress(planetInfo.ai_confidence.toFixed(2) + '%');
+            }
+        }
+    </script>
   </a-scene>
-
- 
-
-  <script>
-
-    // KALDIRILDI: Sorun çıkaran 'scale-on-distance' bileşeni tamamen kaldırıldı.
-
- 
-
-    const planetData = [
-
-      {name:"mercury", radius:0.4, texture:"#mercuryTexture", dur:20000, info: "Gunese en yakin gezegendir. Yuzeyi kraterlerle kaplidir ve atmosferi yok denecek kadar incedir."},
-
-      {name:"venus", radius:0.9, texture:"#venusTexture", dur:50000, info: "Yogun atmosferi nedeniyle Sistem'deki en sicak gezegendir. Yuzey sicakligi 465°C'yi bulabilir."},
-
-      {name:"earth", radius:1.0, texture:"#earthTexture", dur:40000, info: "Uzerinde sivi su ve yasam barindirdigi bilinen tek gezegendir. Zengin bir atmosfere ve manyetik alana sahiptir."},
-
-      {name:"mars", radius:0.7, texture:"#marsTexture", dur:30000, info: "Kizil Gezegen olarak da bilinir. Yuzeyinde demir oksit bulunur. Ince bir atmosferi ve kutuplarinda buzullari vardir."},
-
-      {name:"jupiter", radius:2.5, texture:"#jupiterTexture", dur:60000, info: "Gunese sistemindeki en buyuk gezegendir. Buyuk Kirmizi Leke olarak bilinen dev bir firtinaya sahiptir."},
-
-      {name:"saturn", radius:2.0, texture:"#saturnTexture", dur:65000, ring:true, info: "Buz ve kaya parcalarindan olusan etkileyici halka sistemiyle taninir. Cok dusuk bir yogunluga sahiptir."},
-
-      {name:"uranus", radius:1.5, texture:"#uranusTexture", dur:70000, info: "Yan yatmis gibi donen tek gezegendir. Metan gazindan olusan atmosferi ona mavi-yesil bir renk verir."},
-
-      {name:"neptune", radius:1.5, texture:"#neptuneTexture", dur:75000, info: "Gunese en uzak gezegendir. Cok guclu ruzgarlara ve firtinalara sahne olur."}
-
-    ];
-
- 
-
-    const placed = [];
-
-    function getRandomPosition() {
-
-      let pos;
-
-      let valid = false;
-
-      while (!valid) {
-
-        pos = {x: Math.random()*50-25, y: 2+Math.random()*5, z: -(15+Math.random()*40)};
-
-        valid = true;
-
-        for (let p of placed) {
-
-          const dx = pos.x - p.x, dy = pos.y - p.y, dz = pos.z - p.z;
-
-          if (Math.sqrt(dx*dx + dy*dy + dz*dz)<8){ valid=false; break;}
-
-        }
-
-      }
-
-      placed.push(pos);
-
-      return pos;
-
-    }
-
- 
-
-    const planetsContainer = document.querySelector("#planets");
-
- 
-
-    planetData.forEach(planet => {
-
-      const pos = getRandomPosition();
-
- 
-
-      // Gezegen küresi
-
-      const el = document.createElement("a-sphere");
-
-      el.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
-
-      el.setAttribute("radius", planet.radius);
-
-      el.setAttribute("material", `shader: standard; src: ${planet.texture}`);
-
-      el.setAttribute("animation", `property: rotation; to: 0 360 0; loop: true; dur: ${planet.dur}; easing: linear`);
-
-      el.classList.add("planet");
-
-      el.dataset.name = planet.name;
-
-      planetsContainer.appendChild(el);
-
- 
-
-      // Etiket Bölümü
-
-      const labelContainer = document.createElement("a-entity");
-
-      labelContainer.setAttribute("position", `${pos.x} ${pos.y + planet.radius + 1.5} ${pos.z}`);
-
-      
-
-      // DEĞİŞTİRİLDİ: 'scale-on-distance' yerine, etiketin sürekli kameraya bakmasını sağlayan 'look-at' bileşeni eklendi.
-
-      labelContainer.setAttribute("look-at", "[camera]");
-
-      
-
-      labelContainer.setAttribute("animation", `property: position; dir: alternate; dur: 2000; loop: true; to: ${pos.x} ${pos.y + planet.radius + 1.8} ${pos.z}; easing: easeInOutSine`);
-
- 
-
-      const backgroundPlane = document.createElement("a-plane");
-
-      // Etiket kutusunun ve yazısının başlangıç boyutunu biraz küçülttüm, çünkü artık büyümeyecekler.
-
-      backgroundPlane.setAttribute("width", "4"); 
-
-      backgroundPlane.setAttribute("height", "1");
-
-      backgroundPlane.setAttribute("side", "double");
-
-      backgroundPlane.setAttribute("material", "shader: flat; src: #labelBgTexture; transparent: true; opacity: 0.9;");
-
- 
-
-      const labelText = document.createElement("a-text");
-
-      labelText.setAttribute("value", planet.name.toUpperCase());
-
-      labelText.setAttribute("align", "center");
-
-      labelText.setAttribute("color", "#FFFFFF");
-
-      labelText.setAttribute("width", "5"); // Genişliği kutuyla uyumlu hale getirdim.
-
-      labelText.setAttribute("position", "0 0 0.01");
-
-      labelText.setAttribute("font", "mozillavr");
-
-      labelText.setAttribute("shader", "msdf");
-
- 
-
-      labelContainer.appendChild(backgroundPlane);
-
-      labelContainer.appendChild(labelText);
-
-      planetsContainer.appendChild(labelContainer);
-
-      
-
-      // Saturn halkası
-
-      if (planet.ring) {
-
-        const ring = document.createElement("a-ring");
-
-        ring.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
-
-        ring.setAttribute("rotation", "90 0 0");
-
-        ring.setAttribute("material", "shader: flat; src: #saturnRingTexture; transparent:true; opacity:0.8");
-
-        ring.setAttribute("radius-inner", planet.radius + 0.2);
-
-        ring.setAttribute("radius-outer", planet.radius + 1.2);
-
-        planetsContainer.appendChild(ring);
-
-      }
-
-    });
-
- 
-
-    // Bilgi Paneli Kontrol Kodu (Değişiklik yok)
-
-    const sceneEl = document.querySelector('a-scene');
-
-    const infoPanel = document.getElementById('info-panel');
-
-    const infoTitle = document.getElementById('info-title');
-
-    const infoText = document.getElementById('info-text');
-
-    let activePlanet = null;
-
- 
-
-    sceneEl.addEventListener('click', function (evt) {
-
-      if (evt.detail.intersectedEl && evt.detail.intersectedEl.classList.contains('planet')) {
-
-        const clickedPlanetEl = evt.detail.intersectedEl;
-
-        const planetName = clickedPlanetEl.dataset.name;
-
- 
-
-        if (activePlanet === planetName) {
-
-          infoPanel.setAttribute('visible', 'false');
-
-          activePlanet = null;
-
-        } else {
-
-          const planetInfo = planetData.find(p => p.name === planetName);
-
-          if (planetInfo) {
-
-            infoTitle.setAttribute('value', planetInfo.name.toUpperCase());
-
-            infoText.setAttribute('value', planetInfo.info
-
-);
-
-            infoPanel.setAttribute('visible', 'true');
-
-            activePlanet = planetName;
-
-          }
-
-        }
-
-      }
-
-    });
-
-  </script>
-
 </body>
-
 </html>
