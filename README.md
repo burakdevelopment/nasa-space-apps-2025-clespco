@@ -53,8 +53,45 @@ print("verisetleri başarıyla yüklendi.")
 - We loaded the three datasets and created a unified binary target column, is_planet, where 1 represents a confirmed planet or candidate and 0 represents a false positive.
 ```python
 df_koi['is_planet'] = df_koi['koi_disposition'].apply(lambda x: 1 if x in ['CONFIRMED', 'CANDIDATE'] else 0)
+df_koi.rename(columns={'kepler_name': 'planet_name'}, inplace=True)
+
 df_toi['is_planet'] = df_toi['tfopwg_disp'].apply(lambda x: 1 if x in ['PC', 'KP'] else 0)
+df_toi.rename(columns={'toi_id': 'planet_name'}, inplace=True)
+
 df_k2['is_planet'] = df_k2['disposition'].apply(lambda x: 1 if x in ['CONFIRMED', 'CANDIDATE'] else 0)
+df_k2.rename(columns={'pl_name': 'planet_name'}, inplace=True)
+
+features_koi = {
+    'planet_name': 'planet_name', 'koi_period': 'period', 'koi_duration': 'duration', 'koi_depth': 'depth',
+    'koi_prad': 'planet_radius', 'koi_steff': 'stellar_temp', 'koi_srad': 'stellar_radius',
+    'is_planet': 'is_planet'
+}
+df_koi_final = df_koi.rename(columns=features_koi)[list(features_koi.values())]
+
+features_toi = {
+    'planet_name': 'planet_name', 'Period (days)': 'period', 'Duration (hours)': 'duration', 'Depth (mmag)': 'depth',
+    'Planet Radius (R_earth)': 'planet_radius', 'Stellar Eff Temp (K)': 'stellar_temp',
+    'Stellar Radius (R_sun)': 'stellar_radius', 'is_planet': 'is_planet'
+}
+df_toi_final = df_toi.rename(columns=features_toi)[[col for col in features_toi.values() if col in df_toi.rename(columns=features_toi).columns]]
+
+features_k2 = {
+    'planet_name': 'planet_name', 'pl_orbper': 'period', 'pl_trandur': 'duration', 'pl_trandep': 'depth',
+    'pl_rade': 'planet_radius', 'st_teff': 'stellar_temp', 'st_rad': 'stellar_radius',
+    'is_planet': 'is_planet'
+}
+df_k2_final = df_k2.rename(columns=features_k2)[list(features_k2.values())]
+
+df_final = pd.concat([df_koi_final, df_toi_final, df_k2_final], ignore_index=True)
+
+df_final.dropna(inplace=True)
+
+df_final = df_final[df_final['planet_name'].notna()]
+
+df_final.to_csv('final_planet_dataset_with_names.csv', index=False)
+
+print("birleştirilmiş ve temizlenmiş veriseti boyutu:", df_final.shape)
+display(df_final.head())
 ```
 
 **3. Feature Selection & Merging**
