@@ -1,272 +1,345 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <title>VR Güneş Sistemi - Vive Pro</title>
 
-  
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>NASA VR Solar System - Interactive</title>
+
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-  
-  <script src="https://cdn.jsdelivr.net/npm/aframe-teleport-controls@5.0.0/dist/aframe-teleport-controls.min.js"></script>
-
-  
-  <script src="https://unpkg.com/aframe-particle-system-component@3.0.0/dist/aframe-particle-system-component.min.js"></script>
-
-  <style>
-    body { margin: 0; background: black; }
-  </style>
 </head>
+
 <body>
-  <a-scene background="color: black" vr-mode-ui="enabled: true" renderer="antialias: true">
 
-    
+  <a-scene background="color: black">
+
+ 
+
     <a-assets>
-      
-      <audio id="bgm" src="soundtrack.mp3"></audio>
 
-      
-      <img id="skyTex" src="textures/sky.jpg">
-      
-      <img id="sunTex" src="textures/sun.jpg">
-      <img id="mercuryTex" src="textures/mercury.jpg">
-      <img id="venusTex" src="textures/venus.jpg">
-      <img id="earthTex" src="textures/earth.jpg">
-      <img id="marsTex" src="textures/mars.jpg">
-      <img id="jupiterTex" src="textures/jupiter.jpg">
-      <img id="saturnTex" src="textures/saturn.jpg">
-      <img id="saturnRings" src="textures/saturnrings.png">
-      <img id="uranusTex" src="textures/uranus.jpg">
-      <img id="neptuneTex" src="textures/neptune.jpg">
-      <img id="asteroidTex" src="textures/asteroid.jpg">
+        <img id="skyTexture" src="textures/sky.jpg">
+
+        <img id="mercuryTexture" src="textures/mercury.jpg">
+
+        <img id="venusTexture" src="textures/venus.jpg">
+
+        <img id="earthTexture" src="textures/earth.jpg">
+
+        <img id="marsTexture" src="textures/mars.jpg">
+
+        <img id="jupiterTexture" src="textures/jupiter.jpg">
+
+        <img id="saturnTexture" src="textures/saturn.jpg">
+
+        <img id="uranusTexture" src="textures/uranus.jpg">
+
+        <img id="neptuneTexture" src="textures/neptune.jpg">
+
+        <img id="saturnRingTexture" src="textures/saturnrings.png">
+
+        <img id="asteroidTexture" src="textures/asteroid.jpg">
+
+        <img id="labelBgTexture" src="textures/label-background.png">
+
+        <img id="infoPanelBgTexture" src="textures/infopanel-background.png">
+
+        <audio id="soundtrackAudio" src="soundtrack.mp3" preload="auto"></audio>
+
     </a-assets>
 
-    
-    <a-sky src="#skyTex"></a-sky>
+ 
 
-    
-    <a-entity sound="src: #bgm; autoplay: true; loop: true; volume: 0.5; positional: false"></a-entity>
+    <a-sky src="#skyTexture"></a-sky>
 
-   
-    <a-entity id="sunEntity" position="0 2 -20">
-      <a-sphere id="sun" src="#sunTex" radius="5" material="shader: standard; emissive: #ffbb55; emissiveIntensity: 0.7"></a-sphere>
-      <a-entity light="type: point; color: #fff; intensity: 4; distance: 200"></a-entity>
-    </a-entity>
+ 
 
-    
-    
-    <a-entity id="orbit-mercury" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 25000; easing: linear">
-      <a-sphere id="mercury" class="planet" src="#mercuryTex" radius="0.5" position="8 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"></a-sphere>
+    <a-entity light="type: ambient; color: #666"></a-entity>
 
-      
-      <a-circle class="teleportable" id="tp-mercury" radius="1" rotation="-90 0 0"
-                position="8 0.6 0" material="color: #444; opacity: 0.0"></a-circle>
-    </a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-1 1 0.5"></a-entity>
 
-    
-    <a-entity id="orbit-venus" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 42000; easing: linear">
-      <a-sphere id="venus" class="planet" src="#venusTex" radius="0.9" position="12 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 22000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-venus" radius="1.4" rotation="-90 0 0" position="12 0.7 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+ 
 
-    
-    <a-entity id="orbit-earth" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 68000; easing: linear">
-      <a-sphere id="earth" class="planet" src="#earthTex" radius="1.2" position="16 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 11000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-earth" radius="1.8" rotation="-90 0 0" position="16 0.8 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+ 
 
-    
-    <a-entity id="orbit-mars" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 90000; easing: linear">
-      <a-sphere id="mars" class="planet" src="#asteroidTex" radius="1" position="20 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-mars" radius="1.6" rotation="-90 0 0" position="20 0.7 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+    <a-entity id="planets"></a-entity>
 
-   
-    <a-entity id="asteroid-belt" position="0 0 -20">
-      
-      <a-ring src="#asteroidTex" radius-inner="22" radius-outer="26" rotation="-90 0 0" material="shader: flat; opacity: 0.65"></a-ring>
-      
-      <a-entity id="belt-objects" rotation="0 0 0" animation="property: rotation; to: 0 -360 0; loop: true; dur: 120000; easing: linear">
-        
-        <a-sphere src="#asteroidTex" radius="0.3" position="24 1.6 6" animation="property: rotation; to: 0 360 0; loop: true; dur: 6000"></a-sphere>
-        <a-sphere src="#asteroidTex" radius="0.25" position="25 2 -6" animation="property: rotation; to: 0 360 0; loop: true; dur: 7500"></a-sphere>
-        <a-sphere src="#asteroidTex" radius="0.28" position="23 1 -10" animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"></a-sphere>
-      </a-entity>
-    </a-entity>
+ 
 
-    
-    <a-entity id="orbit-jupiter" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 140000; easing: linear">
-      <a-sphere id="jupiter" class="planet" src="#jupiterTex" radius="3" position="28 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-jupiter" radius="3.4" rotation="-90 0 0" position="28 0.9 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+    <a-sphere position="-15 8 -20" radius="0.5"
 
-    
-    <a-entity id="orbit-saturn" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 200000; easing: linear">
-      <a-sphere id="saturn" class="planet" src="#saturnTex" radius="2.5" position="38 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 26000; easing: linear"></a-sphere>
+      material="shader: flat; src: #asteroidTexture"
 
-     
-      <a-ring src="#saturnRings" position="38 2 0" rotation="90 0 0" radius-inner="2.8" radius-outer="4.5" material="shader: flat; transparent: true"></a-ring>
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
 
-      <a-circle class="teleportable" id="tp-saturn" radius="3.0" rotation="-90 0 0" position="38 0.9 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+    </a-sphere>
 
-    
-    <a-entity id="orbit-uranus" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 260000; easing: linear">
-      <a-sphere id="uranus" class="planet" src="#uranusTex" radius="2" position="48 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 30000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-uranus" radius="2.0" rotation="-90 0 0" position="48 0.9 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+ 
 
-    
-    <a-entity id="orbit-neptune" position="0 0 -20" animation="property: rotation; to: 0 360 0; loop: true; dur: 300000; easing: linear">
-      <a-sphere id="neptune" class="planet" src="#neptuneTex" radius="2" position="56 2 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 32000; easing: linear"></a-sphere>
-      <a-circle class="teleportable" id="tp-neptune" radius="2.0" rotation="-90 0 0" position="56 0.9 0" material="opacity:0.0"></a-circle>
-    </a-entity>
+    <a-entity id="rig" position="0 1.6 0">
 
-    
-    <a-entity id="rig" position="0 1.6 5">
-      <a-entity id="camera" camera look-controls wasd-controls-enabled="false"></a-entity>
+      <a-camera id="camera" wasd-controls-enabled="true" look-controls="true"></a-camera>
 
-      
-      <a-entity id="rightHand"
-                hand-controls="hand: right; handModelStyle: lowpoly; color: #ffcc00"
-                teleport-controls="cameraRig: #rig; teleportOrigin: #camera; button: trigger; collisionEntities: .teleportable; hitColor: #7afcff">
+ 
+
+      <a-entity id="info-panel" position="1.5 0 -2.5" rotation="0 -30 0" visible="false">
+
+        <a-plane width="2" height="1.5" material="src: #infoPanelBgTexture; transparent: true; opacity: 0.9" side="double"></a-plane>
+
+        <a-text id="info-title" value="Gezegen Adı" color="#FFF" align="center" width="3" position="0 0.55 0.01" font="mozillavr" shader="msdf"></a-text>
+
+        <a-text id="info-text" value="Gezegen hakkında bilgiler burada yer alacak." color="#FFF" align="left" width="1.8" position="-0.9 0.3 0.01" wrap-count="35"></a-text>
+
       </a-entity>
 
-      
-      <a-entity id="leftHand" hand-controls="hand: left; handModelStyle: lowpoly; color: #00ccff"></a-entity>
+ 
+
+      <a-entity laser-controls="hand: right" raycaster="objects: .planet;"></a-entity>
+
+      <a-entity laser-controls="hand: left" raycaster="objects: .planet;"></a-entity>
+
     </a-entity>
 
-    
-    <a-entity id="effects-root"></a-entity>
+ 
 
-    
-    <a-entity position="0 2.6 -1">
-      <a-text value="Vive: Sağ trigger ile işaretleyip ışınlan. Yakınlaşınca efekt açılır." align="center" color="#ddd" width="6"></a-text>
-    </a-entity>
+    <a-entity sound="src: #soundtrackAudio; autoplay: true; loop: true; volume: 0.5"></a-entity>
+
+ 
 
   </a-scene>
 
-  
+ 
+
   <script>
-    (function () {
-      const scene = document.querySelector('a-scene');
-      const rig = document.querySelector('#rig');
-      const camera = document.querySelector('#camera');
 
-      
-      const planets = [
-        { id: 'mercury', el: document.getElementById('mercury'), tp: document.getElementById('tp-mercury'), radius: 0.5 },
-        { id: 'venus', el: document.getElementById('venus'), tp: document.getElementById('tp-venus'), radius: 0.9 },
-        { id: 'earth', el: document.getElementById('earth'), tp: document.getElementById('tp-earth'), radius: 1.2 },
-        { id: 'mars', el: document.getElementById('mars'), tp: document.getElementById('tp-mars'), radius: 1.0 },
-        { id: 'jupiter', el: document.getElementById('jupiter'), tp: document.getElementById('tp-jupiter'), radius: 3.0 },
-        { id: 'saturn', el: document.getElementById('saturn'), tp: document.getElementById('tp-saturn'), radius: 2.5 },
-        { id: 'uranus', el: document.getElementById('uranus'), tp: document.getElementById('tp-uranus'), radius: 2.0 },
-        { id: 'neptune', el: document.getElementById('neptune'), tp: document.getElementById('tp-neptune'), radius: 2.0 }
-      ];
+    // KALDIRILDI: Sorun çıkaran 'scale-on-distance' bileşeni tamamen kaldırıldı.
 
-      
-      const effectsRoot = document.getElementById('effects-root');
+ 
 
-      
-      planets.forEach(p => {
-        const glow = document.createElement('a-entity');
-        glow.setAttribute('id', p.id + '-glow');
-        glow.setAttribute('visible', 'false');
+    const planetData = [
 
-        
-        const ring = document.createElement('a-ring');
-        ring.setAttribute('radius-inner', p.radius + 0.2);
-        ring.setAttribute('radius-outer', p.radius + 0.8);
-        ring.setAttribute('rotation', '-90 0 0');
-        ring.setAttribute('material', 'color: #7afcff; opacity: 0.45; shader: flat; transparent: true');
-        ring.setAttribute('animation', 'property: material.opacity; from: 0.45; to: 0.0; dur: 1200; dir: alternate; loop: true; easing: easeInOutQuad');
+      {name:"mercury", radius:0.4, texture:"#mercuryTexture", dur:20000, info: "Gunese en yakin gezegendir. Yuzeyi kraterlerle kaplidir ve atmosferi yok denecek kadar incedir."},
 
-        
-        const particles = document.createElement('a-entity');
-        particles.setAttribute('particle-system', {
-          preset: 'dust',
-          particleCount: 60,
-          color: '#7afcff, #ffffff',
-          size: 0.02,
-          maxParticleLife: 1.6,
-          positionSpread: `${p.radius * 0.6} 0.2 ${p.radius * 0.6}`
-        });
+      {name:"venus", radius:0.9, texture:"#venusTexture", dur:50000, info: "Yogun atmosferi nedeniyle Sistem'deki en sicak gezegendir. Yuzey sicakligi 465°C'yi bulabilir."},
 
-        glow.appendChild(ring);
-        glow.appendChild(particles);
-        effectsRoot.appendChild(glow);
+      {name:"earth", radius:1.0, texture:"#earthTexture", dur:40000, info: "Uzerinde sivi su ve yasam barindirdigi bilinen tek gezegendir. Zengin bir atmosfere ve manyetik alana sahiptir."},
 
-        
-        p.glow = glow;
-      });
+      {name:"mars", radius:0.7, texture:"#marsTexture", dur:30000, info: "Kizil Gezegen olarak da bilinir. Yuzeyinde demir oksit bulunur. Ince bir atmosferi ve kutuplarinda buzullari vardir."},
 
-      
-      
-      function checkProximity() {
-        const rigPos = rig.object3D.position;
-        planets.forEach(p => {
-          const planetPosWorld = new THREE.Vector3();
-          p.el.object3D.getWorldPosition(planetPosWorld);
+      {name:"jupiter", radius:2.5, texture:"#jupiterTexture", dur:60000, info: "Gunese sistemindeki en buyuk gezegendir. Buyuk Kirmizi Leke olarak bilinen dev bir firtinaya sahiptir."},
 
-          const dist = rigPos.distanceTo(planetPosWorld);
-         
-          const threshold = p.radius + 2.2;
+      {name:"saturn", radius:2.0, texture:"#saturnTexture", dur:65000, ring:true, info: "Buz ve kaya parcalarindan olusan etkileyici halka sistemiyle taninir. Cok dusuk bir yogunluga sahiptir."},
 
-          if (dist <= threshold) {
-            
-            p.glow.object3D.position.copy(planetPosWorld);
-            p.glow.setAttribute('visible', 'true');
+      {name:"uranus", radius:1.5, texture:"#uranusTexture", dur:70000, info: "Yan yatmis gibi donen tek gezegendir. Metan gazindan olusan atmosferi ona mavi-yesil bir renk verir."},
 
-            
-            
-            if (!rig._nearEffectApplied) {
-              rig._nearEffectApplied = true;
-              const camComp = camera.getAttribute('camera') || {};
-              const originalFov = camComp.fov || 80;
-              camera.setAttribute('camera', 'fov', originalFov - 8);
-              setTimeout(() => {
-                camera.setAttribute('camera', 'fov', originalFov);
-                rig._nearEffectApplied = false;
-              }, 900);
-            }
+      {name:"neptune", radius:1.5, texture:"#neptuneTexture", dur:75000, info: "Gunese en uzak gezegendir. Cok guclu ruzgarlara ve firtinalara sahne olur."}
 
-          } else {
-            p.glow.setAttribute('visible', 'false');
-          }
-        });
+    ];
+
+ 
+
+    const placed = [];
+
+    function getRandomPosition() {
+
+      let pos;
+
+      let valid = false;
+
+      while (!valid) {
+
+        pos = {x: Math.random()*50-25, y: 2+Math.random()*5, z: -(15+Math.random()*40)};
+
+        valid = true;
+
+        for (let p of placed) {
+
+          const dx = pos.x - p.x, dy = pos.y - p.y, dz = pos.z - p.z;
+
+          if (Math.sqrt(dx*dx + dy*dy + dz*dz)<8){ valid=false; break;}
+
+        }
+
       }
 
-      
-      scene.addEventListener('loaded', () => {
-        
-        setInterval(checkProximity, 60);
-      });
+      placed.push(pos);
+
+      return pos;
+
+    }
+
+ 
+
+    const planetsContainer = document.querySelector("#planets");
+
+ 
+
+    planetData.forEach(planet => {
+
+      const pos = getRandomPosition();
+
+ 
+
+      // Gezegen küresi
+
+      const el = document.createElement("a-sphere");
+
+      el.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
+
+      el.setAttribute("radius", planet.radius);
+
+      el.setAttribute("material", `shader: standard; src: ${planet.texture}`);
+
+      el.setAttribute("animation", `property: rotation; to: 0 360 0; loop: true; dur: ${planet.dur}; easing: linear`);
+
+      el.classList.add("planet");
+
+      el.dataset.name = planet.name;
+
+      planetsContainer.appendChild(el);
+
+ 
+
+      // Etiket Bölümü
+
+      const labelContainer = document.createElement("a-entity");
+
+      labelContainer.setAttribute("position", `${pos.x} ${pos.y + planet.radius + 1.5} ${pos.z}`);
 
       
-      const rightHand = document.getElementById('rightHand');
-      rightHand && rightHand.addEventListener('teleport', (evt) => {
 
-        if (rig && rig.object3D) {
-          const pos = rig.object3D.position;
+      // DEĞİŞTİRİLDİ: 'scale-on-distance' yerine, etiketin sürekli kameraya bakmasını sağlayan 'look-at' bileşeni eklendi.
 
-          setTimeout(() => {
-            rig.object3D.position.set(pos.x, pos.y + 0.0, pos.z);
-          }, 50);
+      labelContainer.setAttribute("look-at", "[camera]");
+
+      
+
+      labelContainer.setAttribute("animation", `property: position; dir: alternate; dur: 2000; loop: true; to: ${pos.x} ${pos.y + planet.radius + 1.8} ${pos.z}; easing: easeInOutSine`);
+
+ 
+
+      const backgroundPlane = document.createElement("a-plane");
+
+      // Etiket kutusunun ve yazısının başlangıç boyutunu biraz küçülttüm, çünkü artık büyümeyecekler.
+
+      backgroundPlane.setAttribute("width", "4"); 
+
+      backgroundPlane.setAttribute("height", "1");
+
+      backgroundPlane.setAttribute("side", "double");
+
+      backgroundPlane.setAttribute("material", "shader: flat; src: #labelBgTexture; transparent: true; opacity: 0.9;");
+
+ 
+
+      const labelText = document.createElement("a-text");
+
+      labelText.setAttribute("value", planet.name.toUpperCase());
+
+      labelText.setAttribute("align", "center");
+
+      labelText.setAttribute("color", "#FFFFFF");
+
+      labelText.setAttribute("width", "5"); // Genişliği kutuyla uyumlu hale getirdim.
+
+      labelText.setAttribute("position", "0 0 0.01");
+
+      labelText.setAttribute("font", "mozillavr");
+
+      labelText.setAttribute("shader", "msdf");
+
+ 
+
+      labelContainer.appendChild(backgroundPlane);
+
+      labelContainer.appendChild(labelText);
+
+      planetsContainer.appendChild(labelContainer);
+
+      
+
+      // Saturn halkası
+
+      if (planet.ring) {
+
+        const ring = document.createElement("a-ring");
+
+        ring.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
+
+        ring.setAttribute("rotation", "90 0 0");
+
+        ring.setAttribute("material", "shader: flat; src: #saturnRingTexture; transparent:true; opacity:0.8");
+
+        ring.setAttribute("radius-inner", planet.radius + 0.2);
+
+        ring.setAttribute("radius-outer", planet.radius + 1.2);
+
+        planetsContainer.appendChild(ring);
+
+      }
+
+    });
+
+ 
+
+    // Bilgi Paneli Kontrol Kodu (Değişiklik yok)
+
+    const sceneEl = document.querySelector('a-scene');
+
+    const infoPanel = document.getElementById('info-panel');
+
+    const infoTitle = document.getElementById('info-title');
+
+    const infoText = document.getElementById('info-text');
+
+    let activePlanet = null;
+
+ 
+
+    sceneEl.addEventListener('click', function (evt) {
+
+      if (evt.detail.intersectedEl && evt.detail.intersectedEl.classList.contains('planet')) {
+
+        const clickedPlanetEl = evt.detail.intersectedEl;
+
+        const planetName = clickedPlanetEl.dataset.name;
+
+ 
+
+        if (activePlanet === planetName) {
+
+          infoPanel.setAttribute('visible', 'false');
+
+          activePlanet = null;
+
+        } else {
+
+          const planetInfo = planetData.find(p => p.name === planetName);
+
+          if (planetInfo) {
+
+            infoTitle.setAttribute('value', planetInfo.name.toUpperCase());
+
+            infoText.setAttribute('value', planetInfo.info
+
+);
+
+            infoPanel.setAttribute('visible', 'true');
+
+            activePlanet = planetName;
+
+          }
+
         }
-      });
 
-      
-      
-    })();
+      }
+
+    });
+
   </script>
+
 </body>
+
 </html>
