@@ -37,6 +37,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import warnings; warnings.filterwarnings('ignore')
+
+path_koi = '/kaggle/input/datalar/koi.csv'
+path_toi = '/kaggle/input/datalar/toi.csv'
+path_k2 = '/kaggle/input/datalar/k2pandc.csv'
+
+df_koi = pd.read_csv(path_koi, comment='#')
+df_toi = pd.read_csv(path_toi, comment='#')
+df_k2 = pd.read_csv(path_k2, comment='#')
+
+print("verisetleri başarıyla yüklendi.")
 ```
 
 **2. Data Loading & Unification**
