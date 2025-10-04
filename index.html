@@ -58,7 +58,7 @@
       <a-entity id="astro-panel" position="-2.2 0.1 -2.5" rotation="0 30 0" visible="false">
           <a-plane width="2.2" height="1.0" color="#050505" material="opacity: 0.75"></a-plane>
           <a-text value="ASTROPHYSICAL DATA" color="#ffa500" position="0 0.35 0.01" align="center" width="3.5" font="mozillavr" shader="msdf"></a-text>
-          <a-text id="astro-text" value="Veriler yükleniyor..." color="#FFF" align="left" width="2.8" position="-1.0 -0.05 0.01" wrap-count="50"></a-text>
+          <a-text id="astro-text" value="Veriler yükleniyor..." color="#FFF" align="left" width="1.9" position="-1.0 -0.05 0.01" wrap-count="40"></a-text>
       </a-entity>
 
       <a-entity id="ai-panel" position="2.2 0.1 -2.5" rotation="0 -30 0" visible="false">
@@ -128,35 +128,25 @@
         function animateLightCurve(planetInfo) {
             if (lightCurveInterval) clearInterval(lightCurveInterval);
             lightCurvePath.innerHTML = '';
-            const numPoints = 100;
-            const width = 2.0;
-            const baseHeight = 0.2;
+            const numPoints = 100; const width = 2.0; const baseHeight = 0.2;
             const transitDepth = Math.min(planetInfo.depth / 15000, 0.25) || 0.15;
             const transitDurationRatio = Math.min(planetInfo.duration / 12, 0.3) || 0.2;
-            const startDip = (1 - transitDurationRatio) / 2;
-            const endDip = 1 - startDip;
+            const startDip = (1 - transitDurationRatio) / 2; const endDip = 1 - startDip;
             for (let i = 0; i < numPoints; i++) {
-                const x = -width / 2 + (i / (numPoints - 1)) * width;
-                let y = baseHeight;
+                const x = -width / 2 + (i / (numPoints - 1)) * width; let y = baseHeight;
                 if(i / numPoints > startDip && i / numPoints < endDip) { y -= transitDepth; }
-                const dot = document.createElement('a-sphere');
-                dot.setAttribute('radius', '0.008');
-                dot.setAttribute('position', `${x} ${y} 0.02`);
-                dot.setAttribute('color', '#00ffff');
-                dot.setAttribute('material', 'opacity: 0.3');
-                lightCurvePath.appendChild(dot);
+                const dot = document.createElement('a-sphere'); dot.setAttribute('radius', '0.008');
+                dot.setAttribute('position', `${x} ${y} 0.02`); dot.setAttribute('color', '#00ffff');
+                dot.setAttribute('material', 'opacity: 0.3'); lightCurvePath.appendChild(dot);
             }
             let currentPoint = 0;
             lightCurveInterval = setInterval(() => {
-                const progress = currentPoint / numPoints;
-                const x = -width / 2 + progress * width;
-                let y = baseHeight;
-                let tracerColor = '#00ffff';
+                const progress = currentPoint / numPoints; const x = -width / 2 + progress * width;
+                let y = baseHeight; let tracerColor = '#00ffff';
                 if(progress > startDip && progress < endDip) { y -= transitDepth; tracerColor = '#ff00ff'; }
                 lightCurveTracer.setAttribute('position', `${x} ${y} 0.03`);
                 lightCurveTracer.setAttribute('material', `color: ${tracerColor}`);
-                currentPoint++;
-                if (currentPoint > numPoints) { currentPoint = 0; }
+                currentPoint++; if (currentPoint > numPoints) { currentPoint = 0; }
             }, 50);
         }
 
@@ -174,13 +164,9 @@
         function createExoplanetScene(planets) {
             const exoplanetTextures = ['#tex1', '#tex2', '#tex3', '#tex4', '#tex5', '#tex6', '#tex7', '#tex8', '#tex9', '#tex10'];
             shuffleArray(exoplanetTextures);
-            
-            const targetRadii = [0.7, 1.2, 2.2, 0.9, 1.5, 2.5, 0.8, 1.8, 1.0, 1.3];
-            shuffleArray(targetRadii);
-
             planets.forEach((planet, index) => {
                 const orbitRadius = 8 + index * 4;
-                const planetRadius = targetRadii[index];
+                const planetRadius = planet.planet_radius ? Math.min(planet.planet_radius * 0.4, 3.5) : 0.5;
                 const calculatedDuration = planet.period ? planet.period * 8000 : 80000;
                 const orbitDuration = Math.max(calculatedDuration, 60000);
                 const uniqueTextureId = exoplanetTextures[index];
@@ -192,7 +178,7 @@
                 el.setAttribute("material", `shader: standard; src: ${uniqueTextureId}`);
                 el.classList.add("planet");
                 el.dataset.planetIndex = index;
-                el.setAttribute("animation__spin", "property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear`);
+                el.setAttribute("animation__spin", "property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear");
                 el.addEventListener('click', (evt) => {
                     showExoplanetInfo(evt.target.dataset.planetIndex);
                 });
@@ -235,13 +221,13 @@
                 animateAIProgress(planetInfo.ai_confidence.toFixed(2) + '%');
             }
         }
-        
+
         sceneEl.addEventListener('click', function (evt) {
             if (evt.detail.intersectedEl && evt.detail.intersectedEl.classList.contains('planet')) {
                 showExoplanetInfo(evt.detail.intersectedEl.dataset.planetIndex);
             }
         });
-        
+
         document.querySelectorAll('[laser-controls]').forEach(controller => {
             controller.addEventListener('triggerdown', function(evt) {
                 const intersected = this.components.raycaster.intersectedEls[0];
