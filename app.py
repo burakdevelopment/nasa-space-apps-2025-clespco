@@ -5,8 +5,7 @@ import pandas as pd
 import math
 import random
 
-# --- Sunucu Başlangıç Bloğu ---
-print("--- Sunucu Başlatılıyor ---")
+print("Sunucu Başlatılıyor")
 try:
     df = pd.read_csv('final_planet_dataset_with_names.csv')
     if 'disc_year' not in df.columns: df['disc_year'] = 'N/A'
@@ -18,9 +17,9 @@ except FileNotFoundError:
     kepler_planets_df = pd.DataFrame()
 
 model = joblib.load("planet_classifier.joblib")
-print("OK: AI Modeli başarıyla yüklendi.")
+print("AI Modeli başarıyla yüklendi.")
 
-# Tüm gezegenler için AI skorlarını sunucu başlarken bir kereliğine hesapla
+
 if not kepler_planets_df.empty:
     features = ['period', 'duration', 'depth', 'planet_radius', 'stellar_temp', 'stellar_radius']
     X_all_planets = kepler_planets_df[features].values
@@ -31,7 +30,7 @@ if not kepler_planets_df.empty:
 else:
     high_confidence_planets_df = pd.DataFrame()
 
-# --- Yardımcı Fonksiyonlar ---
+
 def generate_planet_description(planet):
     radius = planet.get('planet_radius', 1); period = planet.get('period', 0)
     if period < 5: return f"A scorching world, it completes a full year in just {period:.1f} days, dancing dangerously close to its star."
@@ -49,10 +48,8 @@ def generate_astro_details(planet):
     else: discovery_year = 'N/A'
     return {"surface_temp": surface_temp, "estimated_mass": estimated_mass, "composition": composition, "discovery_year": discovery_year}
 
-# Flask uygulamasını başlat
 app = Flask(__name__)
 
-# --- Rotalar ---
 @app.route('/')
 def home(): return render_template('index.html')
 
@@ -62,7 +59,6 @@ def get_random_planets():
         random_planets_df = high_confidence_planets_df.sample(10)
         records = random_planets_df.to_dict(orient='records')
         
-        # 3 tane %100, 7 tane (Yüksek Skor - %3-12) ---
         random.shuffle(records)
         for i, record in enumerate(records):
             if i < 3:
@@ -70,9 +66,9 @@ def get_random_planets():
             else:
                 real_confidence = record['ai_confidence']
                 penalty = random.uniform(3.0, 12.0)
-                adjusted_score = max(75.0, real_confidence - penalty) # Skorun 75'in altına düşmesini engelle
+                adjusted_score = max(75.0, real_confidence - penalty) 
                 record['ai_confidence'] = adjusted_score
-        # -----------------------------------------------------------------
+        
 
         for record in records:
             record['description'] = generate_planet_description(record)
@@ -82,5 +78,6 @@ def get_random_planets():
     return jsonify([])
 
 if __name__ == '__main__':
-    print("\n--- Sunucu Çalışıyor. Tarayıcıdan http://127.0.0.1:5000 adresini açabilirsiniz. ---")
+    print("\nSunucu Çalışıyor. Tarayıcıdan http://127.0.0.1:5000 adresini açabilirsiniz.")
+
     app.run(port=5000, host='0.0.0.0', debug=False)
