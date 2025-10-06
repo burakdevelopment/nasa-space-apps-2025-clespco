@@ -89,7 +89,7 @@
     <a-entity sound="src: #soundtrackAudio; autoplay: true; loop: true; volume: 0.5"></a-entity>
 
     <script>
-        // --- Global Değişkenler ---
+        
         const planetsContainer = document.querySelector("#planets");
         const sceneEl = document.querySelector('a-scene');
         const infoPanel = document.getElementById('info-panel');
@@ -101,12 +101,12 @@
         let planetsDataStore = [];
         let lightCurveInterval = null;
 
-        // --- Ana Başlatıcı ---
+        
         window.addEventListener('load', () => {
             fetchPlanetsAndCreateScene();
         });
 
-        // --- Yardımcı Fonksiyonlar ---
+        
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -159,7 +159,7 @@
             }, 50);
         }
 
-        // --- Ana Fonksiyonlar ---
+       
         function fetchPlanetsAndCreateScene() {
             fetch('/get-random-planets')
                 .then(response => response.json())
@@ -188,10 +188,10 @@
                 el.setAttribute("material", `shader: standard; src: ${uniqueTextureId}`);
                 el.classList.add("planet");
                 el.dataset.planetIndex = index;
-                // DÜZELTME: Belirttiğiniz olası tırnak hatası da dahil tüm satırlar kontrol edildi.
+                
                 el.setAttribute("animation__spin", "property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear");
                 
-                // YENİ: Gezegen Adı Etiketi
+                
                 const label = document.createElement('a-text');
                 label.setAttribute('value', planet.planet_name);
                 label.setAttribute('color', 'white');
@@ -217,23 +217,23 @@
             });
         }
         
-        // GÜNCELLEME: Panel animasyonlarını yönetecek şekilde güncellendi
+        
         function showExoplanetInfo(planetIndex) {
             const planetInfo = planetsDataStore[planetIndex];
             if (!planetInfo) return;
 
             if (activePlanet === planetInfo.planet_name) {
-                // Panelleri kapatma animasyonunu tetikle
+                
                 allPanels.forEach(p => p.emit('close-panels'));
-                // Animasyon bittikten sonra panelleri tamamen gizle
+               
                 setTimeout(() => {
                     allPanels.forEach(p => p.setAttribute('visible', 'false'));
-                }, 350); // Animasyon süresinden biraz uzun tutuyoruz
+                }, 350); 
 
                 if (lightCurveInterval) clearInterval(lightCurveInterval);
                 activePlanet = null;
             } else {
-                // Panelleri önce görünür yap, sonra açılma animasyonunu tetikle
+                
                 allPanels.forEach(p => p.setAttribute('visible', 'true'));
                 allPanels.forEach(p => p.emit('open-panels'));
 
