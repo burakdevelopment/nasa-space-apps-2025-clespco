@@ -174,6 +174,10 @@ In NASA Space Apps 2025's 48-hour marathon:
 
 We will complete the steps.
 
+## Katkıda Bulunanlar
+- [@AtnNaz](https://github.com/AtnNaz)
+
+
 ### 📜 License
 
 This project is licensed under the MIT License.
